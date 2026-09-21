@@ -376,6 +376,8 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 #s-cw table.cw td.cell.sel{background:#f39c1f;color:#fff;border-color:#d9820b}
 #s-cw table.cw td.cell.done{background:#bfe8c4;color:#1e5a2a;border-color:#8fcf98}
 #s-cw table.cw td.cell.wrong{background:#f7c0b6;color:#8a2215}
+#s-cw table.cw td.cell.lock:not(.sel){color:#1e7a34}
+#s-cw table.cw td.cell.lock.inword:not(.sel){background:#e4f0c4}
 #s-cw table.cw td.cell span.n{color:#8f8563;font-size:8.5px}
 #s-cw table.cw td.cell.sel span.n{color:#fff3dc}
 #s-cw .clue{background:#fffdf4;color:#2c2a22;border:0;border-radius:16px;padding:10px 14px;margin:6px 0 10px;
@@ -424,6 +426,11 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .dv-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid color-mix(in srgb,var(--chalk) 10%,transparent)}
 .dv-row .m{margin-left:auto;font-weight:700}
 .dv-row .m.ok{color:var(--green)} .dv-row .m.no{color:var(--coral)}
+.lsn{display:flex;gap:16px;justify-content:center;align-items:center;margin:4px 0}
+.lsn button{width:78px;height:78px;border-radius:50%;font-size:34px;background:var(--board-lt);border:2.5px solid var(--yellow);color:var(--chalk);cursor:pointer}
+.lsn button.slow{width:56px;height:56px;font-size:24px;border-width:2px;border-color:color-mix(in srgb,var(--chalk) 30%,transparent)}
+.lsn button:active{transform:scale(.94)}
+.lsn-rev{font-size:15px;color:var(--dim);font-weight:600;margin-top:6px}
 .trgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-bottom:14px}
 .tr{background:#fffdf4;color:#2c2a22;border:0;border-radius:18px;padding:14px 10px 12px;font:inherit;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;text-align:center;min-height:150px;
@@ -2095,7 +2102,7 @@ function closeBattle(){ if(BT){ clearInterval(BT.timer); BT.end=0; } showTab("s-
    pick (слово→переклад), recall (переклад→слово), type (написати),
    build (конструктор слів), phrase (конструктор фраз), flash (картки),
    sprint (спринт: вірно/невірно на час; зараз замінений батлом). */
-const TR_ICONS={"battle":'<path d="M32 22h32v14a16 16 0 0 1-32 0z"/><path d="M32 28H22a8 8 0 0 0 10 12M64 28h10a8 8 0 0 1-10 12"/><path d="M48 52v10M36 72h24M40 62h16v10H40z"/>',"build":'<rect x="12" y="34" width="22" height="26" rx="5" stroke-width="5"/><rect x="37" y="34" width="22" height="26" rx="5" stroke-width="5"/><rect x="62" y="34" width="22" height="26" rx="5" stroke-width="5"/><text x="23" y="53" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">A</text><text x="48" y="53" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">B</text><text x="73" y="53" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">C</text>',"phrase":'<rect x="16" y="26" width="30" height="14" rx="5"/><rect x="52" y="26" width="28" height="14" rx="5"/><rect x="16" y="50" width="20" height="14" rx="5"/><rect x="42" y="50" width="38" height="14" rx="5"/>',"pick":'<text x="48" y="40" text-anchor="middle" font-size="22" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">EN</text><path d="M48 48v18M40 58l8 8 8-8"/><text x="48" y="88" text-anchor="middle" font-size="15" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">UA</text>',"recall":'<text x="48" y="40" text-anchor="middle" font-size="22" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">UA</text><path d="M48 48v18M40 58l8 8 8-8"/><text x="48" y="88" text-anchor="middle" font-size="15" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">EN</text>',"flash":'<rect x="30" y="18" width="36" height="50" rx="6"/><path d="M24 30v42a6 6 0 0 0 6 6h30"/><path d="M40 38h16M40 48h10"/>',"type":'<rect x="14" y="28" width="68" height="40" rx="7"/><path d="M26 40h0M38 40h0M50 40h0M62 40h0M70 40h0M26 52h0M38 52h0M50 52h0M62 52h0M70 52h0M32 60h32"/>',"due":'<path d="M27 44A21 21 0 0 1 64 32"/><path d="M66 20V33H53"/><path d="M69 52A21 21 0 0 1 32 64"/><path d="M30 76V63H43"/>',"hard":'<circle cx="48" cy="48" r="28"/><circle cx="48" cy="48" r="16"/><circle cx="48" cy="48" r="4"/>',"drive":'<circle cx="48" cy="48" r="30"/><circle cx="48" cy="48" r="7"/><path d="M19 42q29-10 58 0M48 55v23"/>',"list":'<path d="M36 30h40M36 48h40M36 66h40"/><path d="M22 30h0M22 48h0M22 66h0"/>'};
+const TR_ICONS={"battle":'<path d="M32 22h32v14a16 16 0 0 1-32 0z"/><path d="M32 28H22a8 8 0 0 0 10 12M64 28h10a8 8 0 0 1-10 12"/><path d="M48 52v10M36 72h24M40 62h16v10H40z"/>',"build":'<rect x="12" y="34" width="22" height="26" rx="5" stroke-width="5"/><rect x="37" y="34" width="22" height="26" rx="5" stroke-width="5"/><rect x="62" y="34" width="22" height="26" rx="5" stroke-width="5"/><text x="23" y="53" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">A</text><text x="48" y="53" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">B</text><text x="73" y="53" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">C</text>',"phrase":'<rect x="16" y="26" width="30" height="14" rx="5"/><rect x="52" y="26" width="28" height="14" rx="5"/><rect x="16" y="50" width="20" height="14" rx="5"/><rect x="42" y="50" width="38" height="14" rx="5"/>',"pick":'<text x="48" y="40" text-anchor="middle" font-size="22" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">EN</text><path d="M48 48v18M40 58l8 8 8-8"/><text x="48" y="88" text-anchor="middle" font-size="15" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">UA</text>',"recall":'<text x="48" y="40" text-anchor="middle" font-size="22" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">UA</text><path d="M48 48v18M40 58l8 8 8-8"/><text x="48" y="88" text-anchor="middle" font-size="15" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">EN</text>',"flash":'<rect x="30" y="18" width="36" height="50" rx="6"/><path d="M24 30v42a6 6 0 0 0 6 6h30"/><path d="M40 38h16M40 48h10"/>',"type":'<rect x="14" y="28" width="68" height="40" rx="7"/><path d="M26 40h0M38 40h0M50 40h0M62 40h0M70 40h0M26 52h0M38 52h0M50 52h0M62 52h0M70 52h0M32 60h32"/>',"due":'<path d="M27 44A21 21 0 0 1 64 32"/><path d="M66 20V33H53"/><path d="M69 52A21 21 0 0 1 32 64"/><path d="M30 76V63H43"/>',"hard":'<circle cx="48" cy="48" r="28"/><circle cx="48" cy="48" r="16"/><circle cx="48" cy="48" r="4"/>',"drive":'<circle cx="48" cy="48" r="30"/><circle cx="48" cy="48" r="7"/><path d="M19 42q29-10 58 0M48 55v23"/>',"listen":'<path d="M20 60V48a28 28 0 0 1 56 0v12"/><rect x="14" y="56" width="16" height="24" rx="6"/><rect x="66" y="56" width="16" height="24" rx="6"/>',"list":'<path d="M36 30h40M36 48h40M36 66h40"/><path d="M22 30h0M22 48h0M22 66h0"/>'};
 function trIcon(id){ return '<svg viewBox="0 0 96 96" aria-hidden="true"><rect x="2" y="2" width="92" height="92" rx="24" style="fill:var(--board-lt)"/><g fill="none" style="stroke:var(--yellow)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">'+(TR_ICONS[id]||'')+'</g></svg>'; }
 /* ==================== ЗА КЕРМОМ: голосове тренування ====================
    Тільки голос: застосунок говорить (speechSynthesis), користувач відповідає вголос
@@ -2525,6 +2532,7 @@ const TRAININGS=[
   {id:"phrase", t:"Конструктор фраз", ex:"phrase"},
   {id:"flash",  t:"Картки слів",      ex:"flash"},
   {id:"type",   t:"Напиши слово",     ex:"type"},
+  {id:"listen", t:"Аудіювання",       ex:"listen"},
   {id:"due",    t:"Повторення",       kind:"due"},
   {id:"hard",   t:"Робота над помилками", kind:"hard"},
   {id:"list",   t:"Усі слова рівня"}
@@ -2533,7 +2541,7 @@ function renderTrainings(){
   const lv=getLevel(S.level), s=lvStats(lv);
   const withSent=lv.words.filter(w=>sentOf(w[0])).length;
   const cnt={sprint:s.total, build:s.total, pick:s.total, recall:s.total, flash:s.total, type:s.total,
-             due:s.due, phrase:withSent, hard:s.hard, list:s.total, battle:s.total};
+             due:s.due, phrase:withSent, listen:s.total, hard:s.hard, list:s.total, battle:s.total};
   const box=$("#trgrid"); box.innerHTML="";
   TRAININGS.forEach(tr=>{
     const n=cnt[tr.id]||0;
@@ -2609,7 +2617,8 @@ function finishBuild(ok,target,isPhrase){
   $$("#b-tiles .lt").forEach(b=>b.classList.add("used"));
   $("#c-score").textContent=score;
   if(!isPhrase) $("#c-sent").innerHTML=sentHtml(en,true);
-  say(isPhrase?target:en);
+  lsnReveal();
+  if(train==="listen"){ lsnText=isPhrase?target:en; lsnSay(false); } else say(isPhrase?target:en);
   setTimeout(()=>{ qi++; nextCard(); }, ok?(isPhrase?1600:900):2200);
 }
 
@@ -2710,6 +2719,75 @@ function showIntro(){
   openOverlay("s-intro");
   say(en);
 }
+
+/* ==================== Аудіювання ====================
+   Слово або речення звучить голосом (текст не показуємо), далі одна з вправ:
+   обрати переклад, обрати написання, написати почуте, зібрати почуте речення.
+   Складність росте разом із коробкою слова. */
+let lsnText="", lsnSub="";
+function lsnSay(slow){
+  try{ if(!window.speechSynthesis||!lsnText) return;
+    speechSynthesis.cancel(); if(speechSynthesis.paused) speechSynthesis.resume();
+    const u=new SpeechSynthesisUtterance(lsnText); u.lang="en-US";
+    const v=dvVoice("en"); if(v) u.voice=v;
+    u.rate = slow ? .55 : (lsnText.includes(" ")&&lsnText.length>18 ? .85 : .8);
+    window.__lsnU=u; speechSynthesis.speak(u);
+  }catch(e){}
+}
+function lsnType(b,hasSent){
+  const r=Math.random();
+  if(b<=1) return r<.6 ? "lpick" : "lspell";
+  if(b<=3) return hasSent&&r<.4 ? "lphrase" : r<.7 ? "lspell" : "ltype";
+  return hasSent&&r<.45 ? "lphrase" : "ltype";
+}
+function lsnReveal(){
+  if(train!=="listen"||!deck[qi]) return;
+  const [en,ua,em]=deck[qi];
+  $("#c-emoji").textContent=em;
+  $("#c-prompt").innerHTML='<div class="lsn"><button id="ls-play" aria-label="Ще раз">🔊</button></div>'
+    +'<div>'+escH(en)+'</div><div class="lsn-rev">'+escH(ua)+'</div>';
+  $("#ls-play").onclick=()=>lsnSay(false);
+}
+function lsnSimilar(en){
+  const L=en.length, f=en[0];
+  let pool=curLevel.words.map(w=>w[0]).filter(w=>w!==en && !w.includes(" ")===!en.includes(" "));
+  let near=pool.filter(w=>w[0]===f && Math.abs(w.length-L)<=2);
+  if(near.length<3) near=near.concat(pool.filter(w=>Math.abs(w.length-L)<=1 && !near.includes(w)));
+  if(near.length<3) near=near.concat(pool.filter(w=>!near.includes(w)));
+  return shuffle(near).slice(0,3);
+}
+function showListen(en,ua,st){
+  const s=sentOf(en);
+  lsnSub=lsnType(st.b,!!s);
+  lsnText = lsnSub==="lphrase" ? s.replace("{}",en) : en;
+  $("#c-emoji").textContent="🎧"; $("#c-mnem").textContent=""; $("#c-sent").innerHTML="";
+  const p=$("#c-prompt"); p.classList.remove("small");
+  p.innerHTML='<div class="lsn"><button id="ls-play" aria-label="Ще раз">🔊</button><button class="slow" id="ls-slow" aria-label="Повільно">🐢</button></div>';
+  $("#ls-play").onclick=()=>lsnSay(false);
+  $("#ls-slow").onclick=()=>lsnSay(true);
+  setTimeout(()=>lsnSay(false),250);
+  if(lsnSub==="lphrase"){ $("#c-hint").textContent="Збери речення, яке почув"; return showBuild(lsnText,true); }
+  if(lsnSub==="ltype"){
+    $("#c-hint").textContent="Напиши слово, яке почув";
+    $("#c-opts").style.display="none"; $("#c-type").style.display="block";
+    const inp=$("#c-input"); inp.value=""; inp.className=""; inp.disabled=false;
+    $("#c-kb").style.display=""; $("#c-type-actions").style.display="flex";
+    $("#c-result").className="result-banner";
+    return;
+  }
+  $("#c-type").style.display="none"; $("#c-opts").style.display="grid";
+  let right, opts;
+  if(lsnSub==="lpick"){
+    $("#c-hint").textContent="Послухай і обери переклад";
+    right=ua; opts=shuffle([ua,...shuffle(curLevel.words.filter(w=>w[1]!==ua)).slice(0,3).map(w=>w[1])]);
+  } else {
+    $("#c-hint").textContent="Яке слово прозвучало?";
+    right=en; opts=shuffle([en,...lsnSimilar(en)]);
+  }
+  const box=$("#c-opts"); box.innerHTML="";
+  opts.forEach(o=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=o;
+    b.onclick=()=>answerCard(b,o===right,right); box.appendChild(b); });
+}
 function nextCard(){
   if(qi>=deck.length) return finishCards();
   if(train==="sprint" && !sprintEnd) return;   // час спринту вийшов або раунд закрито
@@ -2739,6 +2817,7 @@ function nextCard(){
   $("#c-repeat").parentNode.style.display = exType==="sprint" ? "none" : "";
   if(exType==="sprint"){ tickSprint(); $("#c-prev").style.visibility="hidden"; $("#c-sent").innerHTML=""; $("#c-mnem").textContent=""; return showSprint(en,ua); }
   if(exType==="flash") return showFlash(en,ua);
+  if(exType==="listen") return showListen(en,ua,st);
   if(exType==="build"){ $("#c-hint").textContent="Збери слово з літер"; return showBuild(en,false); }
   if(exType==="phrase"){
     $("#c-hint").textContent="Збери речення";
@@ -2936,7 +3015,8 @@ function showTypedResult(ok,right,typed){
     $("#c-kb").style.display="";
     $("#c-next").style.display="none";
   }
-  say(right);
+  lsnReveal();
+  if(train==="listen") lsnSay(false); else say(right);
   $("#c-score").textContent=score;
 }
 function checkTyped(){
@@ -2969,11 +3049,12 @@ function answerCard(btn,ok,right){
   if(ok){ score++; btn.classList.add("ok"); vibrate(18); }
   else{ btn.classList.add("no"); vibrate([25,60,25]); requeue(qi);
     $$("#c-opts .opt").forEach(b=>{ if(b.textContent===right) b.classList.add("ok"); });
-    say(deck[qi][0]); }
+    if(train==="listen") lsnSay(false); else say(deck[qi][0]); }
   $$("#c-opts .opt").forEach(b=>b.disabled=true);
   $("#c-sent").innerHTML=sentHtml(deck[qi][0],true);
   $("#c-score").textContent=score;
-  setTimeout(()=>{ qi++; nextCard(); }, ok?700:1600);
+  lsnReveal();
+  setTimeout(()=>{ qi++; nextCard(); }, train==="listen" ? (ok?1300:2200) : (ok?700:1600));
 }
 function finishCards(){
   clearSession();              // етап пройдено
@@ -3095,6 +3176,12 @@ function wordDone(p){
   for(let i=0;i<p.len;i++){ const [r,c]=cellOf(p,i); if((cwUser[r][c]||"")!==p.en[i]) return false; }
   return true;
 }
+/* Клітинка "закріплена", якщо вона належить уже відгаданому слову:
+   її літера точно правильна, тому під час вводу перпендикулярного слова
+   курсор її перестрибує, а "Стерти" не видаляє. */
+function cellLocked(r,c){ return wordsAt(r,c).some(wordDone); }
+function idxInWord(p,r,c){ for(let i=0;i<p.len;i++){ const [rr,cc]=cellOf(p,i); if(rr===r&&cc===c) return i; } return 0; }
+function nextFree(p,from){ for(let i=from;i<p.len;i++){ const [r,c]=cellOf(p,i); if(!cellLocked(r,c)) return i; } return -1; }
 function wordFull(p){
   for(let i=0;i<p.len;i++){ const [r,c]=cellOf(p,i); if(!cwUser[r][c]) return false; }
   return true;
@@ -3103,7 +3190,7 @@ function selectWord(p){
   if(!p) return;
   selWord=p;
   for(let i=0;i<p.len;i++){ const [r,c]=cellOf(p,i); if(!cwUser[r][c]){ sel=[r,c]; showClue(); return; } }
-  sel=cellOf(p,0); showClue();
+  const f=nextFree(p,0); sel=cellOf(p,f<0?0:f); showClue();
 }
 function drawCw(){
   const rows=grid.length,cols=grid[0].length;
@@ -3118,7 +3205,7 @@ function drawCw(){
       const done=ws.length>0&&ws.every(wordDone);
       const wrong=showWrong&&cwUser[r][c]&&cwUser[r][c]!==grid[r][c];
       const cls=["cell"];
-      if(wrong)cls.push("wrong"); else if(done)cls.push("done");
+      if(wrong)cls.push("wrong"); else if(done)cls.push("done"); else if(cwUser[r][c]&&cellLocked(r,c))cls.push("lock");
       if(inSel&&!isSel)cls.push("inword");
       if(isSel)cls.push("sel");
       const n=cwNums[r+","+c];
@@ -3191,16 +3278,19 @@ function markClueList(){
 }
 function typeLetter(ch){
   if(!selWord){ toast("Обери слово"); return; }
-  if(!sel) sel=cellOf(selWord,0);
-  const [r,c]=sel;
+  const p=selWord;
+  if(wordDone(p)) return;
+  if(!sel) sel=cellOf(p,0);
+  // закріплені літери (з уже відгаданих слів) не перезаписуємо — стрибаємо далі
+  let idx=nextFree(p, idxInWord(p,sel[0],sel[1]));
+  if(idx<0) idx=nextFree(p,0);
+  if(idx<0) return;
+  const [r,c]=cellOf(p,idx);
   cwUser[r][c]=ch.toLowerCase();
   showWrong=false;
-  const p=selWord;
-  // індекс поточної клітинки в слові
-  let idx=0;
-  for(let i=0;i<p.len;i++){ const [rr,cc]=cellOf(p,i); if(rr===r&&cc===c){ idx=i; break; } }
-  // наступна клітинка слова, навіть якщо вона вже заповнена
-  if(idx+1<p.len) sel=cellOf(p,idx+1);
+  // наступна незакріплена клітинка слова (навіть якщо вона вже заповнена)
+  const nx=nextFree(p,idx+1);
+  sel = nx>=0 ? cellOf(p,nx) : [r,c];
   const done=wordDone(p);
   if(done){
     /* зараховуємо як успішне повторення рівно один раз за кросворд
@@ -3218,10 +3308,14 @@ function typeLetter(ch){
 function eraseLetter(){
   if(!sel||!selWord) return;
   const p=selWord, [r,c]=sel;
-  let idx=0;
-  for(let i=0;i<p.len;i++){ const [rr,cc]=cellOf(p,i); if(rr===r&&cc===c){ idx=i; break; } }
-  if(cwUser[r][c]) cwUser[r][c]="";
-  else if(idx>0){ const [pr,pc]=cellOf(p,idx-1); cwUser[pr][pc]=""; sel=[pr,pc]; }
+  if(wordDone(p)){ toast("Слово вже відгадане"); return; }
+  const idx=idxInWord(p,r,c);
+  if(cwUser[r][c] && !cellLocked(r,c)) cwUser[r][c]="";
+  else {
+    // крок назад, перестрибуючи закріплені літери
+    for(let i=idx-1;i>=0;i--){ const [pr,pc]=cellOf(p,i); if(cellLocked(pr,pc)) continue;
+      cwUser[pr][pc]=""; sel=[pr,pc]; break; }
+  }
   showWrong=false;
   drawCw(); drawTiles(); updateCw(); markClueList();
   saveCwSession();
