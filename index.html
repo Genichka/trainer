@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#123028">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Wordhunter — англійська</title>
-<meta name="application-name" content="Wordhunter">
+<title>WordHunter — англійська</title>
+<meta name="application-name" content="WordHunter">
 <style>
 :root{
   --board:#123028; --board-dk:#0d241e; --board-lt:#1b4034;
@@ -528,7 +528,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 }
 </style>
 <link rel="manifest" href="./manifest.json">
-<meta name="apple-mobile-web-app-title" content="Wordhunter">
+<meta name="apple-mobile-web-app-title" content="WordHunter">
 </head>
 <body>
 <div id="app">
@@ -541,7 +541,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
     <button class="hdr-ic" id="h-stats" title="Статистика">📊</button>
   </div>
   <div class="homecenter">
-    <div class="brand"><span class="bw">Word</span><span class="bh">hunter</span><div class="tag">полюй на англійські слова</div></div>
+    <div class="brand"><span class="bw">Word</span><span class="bh">Hunter</span><div class="tag">полюй на англійські слова</div></div>
     <button class="skillbig" id="go-skill"><span class="ic">🎯</span>
       <span class="t">Обери свій skill</span><span class="d">слова · тексти · кросворд</span></button>
   </div>
@@ -1315,7 +1315,7 @@ function checkRemind(){
   rm.last=t; save();
   const lv=getLevel(S.level), f=dueForecast(lv);
   const body = f.today ? ("На повторення чекає слів: "+f.today) : ("Ще "+(goal-done)+" відповідей до денної цілі");
-  if(!notify("Wordhunter: час на полювання 🎯", body)) toast("Нагадування: "+body);
+  if(!notify("WordHunter: час на полювання 🎯", body)) toast("Нагадування: "+body);
 }
 setInterval(checkRemind,60000);
 function streak(){
