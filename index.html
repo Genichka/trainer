@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#123028">
+<meta name="theme-color" content="#111217">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>WordHunter — англійська</title>
@@ -578,6 +580,136 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 :root[data-theme="light"] body::before{opacity:0}
 :root[data-theme="light"] .tr,:root[data-theme="light"] .br-list,:root[data-theme="light"] .tiles .lt,:root[data-theme="light"] .btiles .lt{box-shadow:0 2px 8px rgba(0,0,0,.12)}
 :root[data-theme="light"] .tr,:root[data-theme="light"] #s-cw .clue{border:1.5px solid #e2dccb}
+/* ===================== ТЕМА «ГРАФАНА»: строгий професійний вигляд =====================
+   Палітра Grafana dark: полотно #111217, панелі #181b1f, другий рівень #22252b,
+   тонкі рамки, радіус 4px, без тіней і текстур, синій акцент #3d71d9 / #6e9fff. */
+:root[data-theme="grafana"]{--board:#111217;--board-dk:#0b0c0e;--board-lt:#181b1f;--chalk:#ccccdc;--dim:#8e8e9e;
+  --yellow:#6e9fff;--coral:#f2495c;--sky:#5794f2;--lilac:#b877d9;--green:#73bf69;--rose:#ff7383;
+  --gf-2:#22252b;--gf-3:#2c3037;--gf-line:rgba(204,204,220,.12);--gf-line2:rgba(204,204,220,.2);--gf-pri:#3d71d9;--gf-pri-h:#4a7fe6;--r:4px}
+:root[data-theme="grafana"] body{font-family:Inter,Roboto,"Segoe UI",-apple-system,system-ui,sans-serif;font-size:16px;letter-spacing:.1px}
+:root[data-theme="grafana"] body::before{display:none}
+/* заголовки — спокійні, без «жирного крику» */
+:root[data-theme="grafana"] .head h1{font-size:20px;font-weight:500;letter-spacing:0}
+:root[data-theme="grafana"] .head .sub{font-size:13px}
+:root[data-theme="grafana"] .sect{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);margin:18px 0 8px}
+/* єдина геометрія: радіус 4px, рамка 1px, без тіней */
+:root[data-theme="grafana"] :is(.btn,.chip,.tile,.txrow,.lvpick,.opt,.clue,.kb button,.clues-toggle,.cluerow,.kpi,.prow,.pfbtn,#c-input,
+  .result-banner,.note-box,.goalrow,.toast,.modal .box,.modal input,.emopick button,.skill,.hdr-ic,.dash,.bookrow,.tiles .lt,
+  .tilectl button,.dv-topics button,.dv-stage,.tr,.bslot,.btiles .lt,.cmpbox,.bt-card,.bt-vs div,.bt-btns button,.br-list,.br-btn,
+  .exitbtn,.homebtn,.dict,.forecast span,.rate10 button,.skillbig,.icon-btn,.themes button,.dtile .ic,.lsn button,.bookrow .cv){
+  border-radius:4px;box-shadow:none}
+:root[data-theme="grafana"] :is(.btn,.chip,.tile,.txrow,.lvpick,.opt,.clue,.kb button,.clues-toggle,.kpi,.prow,.pfbtn,#c-input,
+  .result-banner,.note-box,.goalrow,.toast,.modal .box,.modal input,.emopick button,.skill,.hdr-ic,.dash,.bookrow,
+  .tilectl button,.dv-topics button,.dv-stage,.tr,.bslot,.bt-card,.bt-vs div,.exitbtn,.homebtn,.dict,.forecast span,.rate10 button,.skillbig,.icon-btn){
+  border-width:1px;border-color:var(--gf-line)}
+:root[data-theme="grafana"] :is(.btn,.chip,.tile,.txrow,.lvpick,.opt,.skill,.tr,.dash,.bookrow,.tilectl button,.dv-topics button,.exitbtn,.homebtn,.prow,.clues-toggle,.kb button,.rate10 button):active{transform:none;filter:brightness(1.15)}
+:root[data-theme="grafana"] .emoji,:root[data-theme="grafana"] .skillbig .ic{filter:none}
+:root[data-theme="grafana"] .emoji{font-size:72px}
+/* кнопки */
+:root[data-theme="grafana"] .btn{background:var(--gf-2);color:var(--chalk);font-weight:500}
+:root[data-theme="grafana"] .btn.primary{background:var(--gf-pri);border-color:var(--gf-pri);color:#fff}
+:root[data-theme="grafana"] .btn.ghost{background:transparent;border-color:var(--gf-line2)}
+:root[data-theme="grafana"] .btn.ghost.on{background:rgba(61,113,217,.15);border-color:var(--gf-pri);color:var(--yellow)}
+:root[data-theme="grafana"] .btn.ghost.on.mastered{background:rgba(115,191,105,.14);border-color:var(--green);color:var(--green)}
+:root[data-theme="grafana"] .startbtn{font-size:16px!important;padding:14px!important;font-weight:500}
+:root[data-theme="grafana"] .chip{border-color:var(--gf-line2);color:var(--chalk);font-weight:500;padding:7px 12px;font-size:13.5px}
+:root[data-theme="grafana"] .chip.on{background:var(--gf-pri)!important;border-color:var(--gf-pri)!important;color:#fff}
+:root[data-theme="grafana"] :is(.badge-on,.badge-act,.bookrow .day){background:var(--gf-pri);color:#fff;border-radius:2px}
+:root[data-theme="grafana"] .rate10 button.on{background:var(--gf-pri);border-color:var(--gf-pri);color:#fff}
+:root[data-theme="grafana"] .rate10 button.on.r-lo{background:var(--coral);border-color:var(--coral);color:#fff}
+:root[data-theme="grafana"] .rate10 button.on.r-hi{background:var(--green);border-color:var(--green);color:#0b0c0e}
+:root[data-theme="grafana"] .kb button{background:var(--gf-2);font-weight:500}
+:root[data-theme="grafana"] .kb button:active{background:var(--gf-pri);color:#fff;transform:none}
+:root[data-theme="grafana"] .result-banner button{background:var(--gf-pri);border-color:var(--gf-pri);color:#fff}
+:root[data-theme="grafana"] .exitbtn,:root[data-theme="grafana"] .homebtn{width:40px;height:40px;background:var(--gf-2)}
+:root[data-theme="grafana"] .exitbtn .bk,:root[data-theme="grafana"] .homebtn .bk{width:22px;height:22px}
+/* панелі */
+:root[data-theme="grafana"] :is(.tile,.txrow,.lvpick,.opt,.clue,.kpi,.prow,.goalrow,.skill,.dash,.bookrow,.dict,.forecast span,.dv-topics button,.dv-stage,.bt-card){background:var(--board-lt)}
+:root[data-theme="grafana"] .opt{font-weight:500}
+:root[data-theme="grafana"] .opt.ok{background:rgba(115,191,105,.15);border-color:var(--green);color:#b9e3b3}
+:root[data-theme="grafana"] .opt.no{background:rgba(242,73,92,.14);border-color:var(--coral);color:#ffb3bd}
+:root[data-theme="grafana"] .dash,:root[data-theme="grafana"] .dict{border:1px solid var(--gf-line)}
+:root[data-theme="grafana"] .dash .nm{font-weight:500;font-size:17px}
+:root[data-theme="grafana"] .meter{border-radius:2px;background:var(--gf-3)}
+:root[data-theme="grafana"] .dash .meter{height:6px;border-radius:2px}
+:root[data-theme="grafana"] .kpi .v{font-weight:500}
+:root[data-theme="grafana"] .lvpick{border-left:3px solid var(--c)}
+:root[data-theme="grafana"] .lvpick.on{border-color:var(--gf-pri);border-left-color:var(--c);box-shadow:none;background:rgba(61,113,217,.08)}
+:root[data-theme="grafana"] .lvpick .nm,.dummy{font-weight:500}
+:root[data-theme="grafana"] .skill{border-left:3px solid var(--c);padding:16px;margin-bottom:10px}
+:root[data-theme="grafana"] .skill .ic{font-size:26px;width:36px}
+:root[data-theme="grafana"] .skill .t{font-size:17px;font-weight:500}
+:root[data-theme="grafana"] .tile .em{font-size:22px;width:30px}
+:root[data-theme="grafana"] .tile .t{font-weight:500;font-size:16px}
+:root[data-theme="grafana"] .txrow .t,:root[data-theme="grafana"] .bookrow .t{font-weight:500}
+:root[data-theme="grafana"] .bookrow .cv{background:var(--gf-2);box-shadow:none;font-size:22px}
+:root[data-theme="grafana"] .toast{background:var(--gf-2);border:1px solid var(--gf-line2);font-size:14px}
+:root[data-theme="grafana"] .modal{background:rgba(0,0,0,.6)}
+:root[data-theme="grafana"] .modal .box{background:var(--board-lt)}
+:root[data-theme="grafana"] .result .big{color:var(--chalk);font-weight:500}
+:root[data-theme="grafana"] .prompt{font-weight:600;letter-spacing:0}
+/* старт */
+:root[data-theme="grafana"] .brand{font-weight:600;letter-spacing:-.5px;font-size:38px}
+:root[data-theme="grafana"] .skillbig{background:var(--board-lt);border:1px solid var(--gf-line);max-width:300px}
+:root[data-theme="grafana"] .skillbig .ic{font-size:64px}
+:root[data-theme="grafana"] .skillbig .t{font-size:22px;font-weight:500}
+:root[data-theme="grafana"] .ava{border-width:1px;background:var(--gf-2)}
+/* плитки тренувань — як панелі дашборда: назва зліва вгорі, значення, іконка праворуч */
+:root[data-theme="grafana"] .trgrid{gap:8px}
+:root[data-theme="grafana"] .tr{background:var(--board-lt);color:var(--chalk);border:1px solid var(--gf-line);
+  align-items:flex-start;text-align:left;min-height:104px;padding:10px 12px;position:relative}
+:root[data-theme="grafana"] .tr:hover{border-color:var(--gf-line2)}
+:root[data-theme="grafana"] .tr .t{font-weight:500;font-size:14px;min-height:0;padding-right:40px}
+:root[data-theme="grafana"] .tr .n{color:var(--dim);font-weight:400;font-size:12.5px}
+:root[data-theme="grafana"] .tr .pic{position:absolute;right:8px;top:8px;margin:0;padding:0}
+:root[data-theme="grafana"] .tr .pic svg{width:34px;height:34px}
+:root[data-theme="grafana"] .tr .pic svg>rect{fill:transparent!important}
+/* кросворд і плитки літер — без «паперу» */
+:root[data-theme="grafana"] #s-cw table.cw td.cell{background:var(--gf-2);border:1px solid var(--gf-line2);color:var(--chalk);border-radius:2px;font-weight:600}
+:root[data-theme="grafana"] #s-cw table.cw td.cell.inword{background:rgba(61,113,217,.2)}
+:root[data-theme="grafana"] #s-cw table.cw td.cell.sel{background:var(--gf-pri);color:#fff;border-color:var(--gf-pri)}
+:root[data-theme="grafana"] #s-cw table.cw td.cell.done{background:rgba(115,191,105,.16);color:var(--green);border-color:rgba(115,191,105,.4)}
+:root[data-theme="grafana"] #s-cw table.cw td.cell.wrong{background:rgba(242,73,92,.2);color:#ffb3bd}
+:root[data-theme="grafana"] #s-cw table.cw td.cell.lock:not(.sel){color:var(--green)}
+:root[data-theme="grafana"] #s-cw table.cw td.cell.lock.inword:not(.sel){background:rgba(115,191,105,.12)}
+:root[data-theme="grafana"] #s-cw table.cw td.cell span.n{color:var(--dim)}
+:root[data-theme="grafana"] #s-cw table.cw td.cell.sel span.n{color:#dfe8ff}
+:root[data-theme="grafana"] #s-cw .clue{background:var(--board-lt);color:var(--chalk);border:1px solid var(--gf-line);box-shadow:none}
+:root[data-theme="grafana"] #s-cw .clue .em{font-size:30px}
+:root[data-theme="grafana"] #s-cw .clue .tx{color:var(--chalk);font-weight:500;font-size:17px}
+:root[data-theme="grafana"] #s-cw .clue .meta{color:var(--dim)}
+:root[data-theme="grafana"] :is(.tiles .lt,.btiles .lt){background:var(--gf-2);color:var(--chalk);border:1px solid var(--gf-line2);font-weight:600}
+:root[data-theme="grafana"] :is(.tiles .lt,.btiles .lt):active{transform:none;background:var(--gf-pri);color:#fff}
+:root[data-theme="grafana"] .btiles .lt.bad{background:rgba(242,73,92,.3)}
+:root[data-theme="grafana"] .bslot{border-width:1px}
+:root[data-theme="grafana"] .cmpbox{background:var(--gf-2)}
+:root[data-theme="grafana"] .cmpbox .w .add{color:#fff;background:var(--gf-pri)}
+:root[data-theme="grafana"] .cmpbox .w .fix{color:#0b0c0e}
+/* батл */
+:root[data-theme="grafana"] .bt-btns button{font-weight:500}
+:root[data-theme="grafana"] .bt-no{background:#d10e5c}
+:root[data-theme="grafana"] .bt-yes{background:#1a7f4b}
+:root[data-theme="grafana"] .br-list{background:var(--board-lt);color:var(--chalk);border:1px solid var(--gf-line)}
+:root[data-theme="grafana"] .br-row{border-bottom-color:var(--gf-line)}
+:root[data-theme="grafana"] .br-row .nm small{color:var(--dim)}
+:root[data-theme="grafana"] .br-again{background:var(--gf-pri);color:#fff}
+:root[data-theme="grafana"] .br-more{background:var(--gf-2);color:var(--chalk)}
+/* голосові режими */
+:root[data-theme="grafana"] .dv-topics button.on{background:rgba(61,113,217,.12);border-color:var(--gf-pri)}
+:root[data-theme="grafana"] .lsn button{border-radius:50%;border:1px solid var(--gf-pri);background:var(--gf-2)}
+:root[data-theme="grafana"] .lsn button.slow{border-color:var(--gf-line2)}
+:root[data-theme="grafana"] .themes button{border:1px solid var(--gf-line)}
+:root[data-theme="grafana"] .themes button.on{border-color:var(--gf-pri)}
+:root[data-theme="grafana"] .dtile .ic{box-shadow:none}
+:root[data-theme="grafana"] .tr .n{padding-right:36px}
+:root[data-theme="grafana"] :is(h1,h2,.bt-start h2,.bt-score,.bt-en){font-weight:500}
+:root[data-theme="grafana"] .dict .dt{font-weight:600;text-transform:uppercase;letter-spacing:.8px;font-size:11.5px}
+:root[data-theme="grafana"] .dict .dv{font-weight:500}
+:root[data-theme="grafana"] .dict .dv span{font-weight:400}
+:root[data-theme="grafana"] .dict .dl span{border-left-width:3px;border-radius:2px;background:var(--gf-2)}
+:root[data-theme="grafana"] .lvpick .st.lvdesc{font-weight:500}
+:root[data-theme="grafana"] .brand .tag{font-weight:500;letter-spacing:.5px}
+:root[data-theme="grafana"] .tiles .lt{text-transform:uppercase}
 .themes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .themes button{border:2px solid transparent;border-radius:14px;padding:8px 6px 7px;font:inherit;font-size:12.5px;font-weight:700;
   cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
@@ -1536,6 +1668,7 @@ function renderLevel(){
 
 /* ==================== теми оформлення ==================== */
 const THEMES=[
+  {id:"grafana", t:"Графана", c:["#111217","#22252b","#3d71d9"], meta:"#111217"},
   {id:"board",   t:"Дошка",   c:["#123028","#1b4034","#f2c14e"], meta:"#123028"},
   {id:"night",   t:"Ніч",     c:["#121a2b","#1d2842","#ffb454"], meta:"#121a2b"},
   {id:"ocean",   t:"Океан",   c:["#0e2a36","#15404f","#5fd4e6"], meta:"#0e2a36"},
@@ -1551,7 +1684,7 @@ function applyTheme(id){
 }
 function renderThemes(){
   const box=$("#themes"); if(!box) return; box.innerHTML="";
-  const cur=ALL.theme||"board";
+  const cur=ALL.theme||"grafana";
   THEMES.forEach(th=>{
     const b=document.createElement("button");
     b.className=th.id===cur?"on":"";
@@ -1564,7 +1697,7 @@ function renderThemes(){
 /* ==================== старт і меню ==================== */
 function renderHome(){
   $("#ava-home").textContent=S.ava;
-  $("#hi-home").textContent="Hello, "+S.name+"! 👋";
+  $("#hi-home").textContent="Hello, "+S.name+"!"+((ALL.theme||"grafana")==="grafana"?"":" 👋");
   const st=streak();
   $("#home-sub").textContent = st ? ("🔥 днів поспіль: "+st) : "Англійська щодня";
 }
@@ -1623,7 +1756,9 @@ function renderCwHome(){
   $("#cw-dot").style.background=lv.color;
   $("#cw-name").textContent=lv.code+" · "+lv.name;
   const best=S.stats.cwBest[lv.id+"_"+S.size];
-  $("#cw-st").textContent="Зібрано кросвордів: "+S.stats.cw+(best?("  ·  найкращий час: "+mmss(best)):"");
+  const nPool=cwPool(lv).length;
+  $("#cw-st").textContent="Знайомих слів для кросворда: "+nPool+(nPool<CW_MIN?(" (треба від "+CW_MIN+")"):"")
+    +"  ·  зібрано: "+S.stats.cw+(best?("  ·  найкращий час: "+mmss(best)):"");
   const box=$("#chips-size"); box.innerHTML="";
   Object.keys(SIZES).forEach(k=>{
     const b=document.createElement("button");
@@ -3134,18 +3269,26 @@ function trimGrid(res,size){
   const g=[]; for(let r=r0;r<=r1;r++) g.push(res.grid[r].slice(c0,c1+1));
   return {grid:g,placed:res.placed.map(p=>Object.assign({},p,{r:p.r-r0,c:p.c-c0}))};
 }
+const CW_MIN=6;
+function cwPool(lv){
+  return lv.words.filter(w=>/^[a-z]+$/.test(w[0])&&w[0].length>=3&&w[0].length<=9&&wstate(lv.id,w[0]).seen>0);
+}
 function startCrossword(lv){
   clearSession();
   cwScored={};
   toggleClues(false);   /* кожен новий кросворд починається зі згорнутим списком */
   curLevel=lv;
   const cfg=SIZES[S.size]||SIZES.m, now=Date.now();
-  const cand=lv.words
-    .filter(w=>/^[a-z]+$/.test(w[0])&&w[0].length>=3&&w[0].length<=9)
+  /* лише слова, які вже зустрічались у навчанні: спершу ті, що пора повторити
+     або з помилками, потім решта знайомих */
+  const cand=cwPool(lv)
     .map(w=>{ const st=wstate(lv.id,w[0]);
-      return {w,p:(st.seen===0?2:(st.due<=now?3+(st.err||0):1))+Math.random()}; })
+      return {w,p:(st.due<=now?3+(st.err||0):1)+(st.status==="repeat"?3:0)+Math.random()}; })
     .sort((a,b)=>b.p-a.p).slice(0,cfg.w*2).map(x=>x.w);
-  if(cand.length<5){ toast("Замало коротких слів на цьому рівні"); return; }
+  if(cand.length<CW_MIN){
+    toast("Для кросворда потрібно "+CW_MIN+" знайомих слів, зараз "+cand.length+". Пройди урок у «Вивчаємо слова»");
+    return;
+  }
 
   let best=null;
   for(let t=0;t<6;t++){
@@ -3568,6 +3711,7 @@ document.addEventListener("keydown",e=>{
 });
 
 drawWordKeyboard();
+if(!ALL.gf1){ ALL.gf1=1; ALL.theme="grafana"; save(); }
 applyTheme(ALL.theme);
 showTab("s-home");
 checkRemind();
