@@ -1,6 +1,6 @@
 {
   "name": "Слова — англійська",
-  "short_name": "trainer",
+  "short_name": "Wordhunter",
   "description": "Мобільний тренажер англійської лексики",
   "start_url": "./",
   "scope": "./",
