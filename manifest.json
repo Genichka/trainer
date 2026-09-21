@@ -1,23 +1,23 @@
 {
-  "name": "Слова — англійська",
-  "short_name": "Wordhunter",
-  "description": "Мобільний тренажер англійської лексики",
-  "start_url": "./",
+  "name": "WordHunter",
+  "short_name": "WordHunter",
+  "description": "WordHunter — полюй на англійські слова",
+  "lang": "uk",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#1f2937",
-  "background_color": "#ffffff",
-  "lang": "uk",
+  "background_color": "#123028",
+  "theme_color": "#123028",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
