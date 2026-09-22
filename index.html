@@ -440,6 +440,13 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .dv-tmsg{font-size:14px;line-height:1.45;margin:8px 0}
 .dv-tmsg:empty{display:none}
 #dv-tbtns:empty{display:none}
+.dv-pips{display:inline-flex;gap:4px;vertical-align:middle}
+.dv-pips i{width:9px;height:9px;border-radius:50%;background:color-mix(in srgb,var(--chalk) 18%,transparent)}
+.dv-pips i.on{background:var(--green)}
+.dv-row .m .ok{color:var(--green);font-size:20px}
+.dv-sum{display:flex;flex-direction:column;gap:2px;margin-top:10px;font-size:14px;color:var(--dim)}
+.dv-sum b{color:var(--chalk)}
+.dv-note{color:var(--dim);font-size:12.5px;line-height:1.4;margin-top:10px}
 .dv-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid color-mix(in srgb,var(--chalk) 10%,transparent)}
 .dv-row .m{margin-left:auto;font-weight:700}
 .dv-row .m.ok{color:var(--green)} .dv-row .m.no{color:var(--coral)}
@@ -2584,6 +2591,7 @@ async function dvIntro(it,tok){
       if(dvCmd(r.alts)==="stop") return dvStop();
       ok=dvMatchEn(r.alts,it.en);
       const heard=r.alts[0]||"";
+      if(ok) it.rep=(it.rep||0)+1;
       dvMark(ok); dvBeep(ok);
       dvShow(ok?"Добре!":"Не зовсім", it.em+" "+it.en, it.ua, heard?("Почув: «"+heard+"»"):"Нічого не почув", ok?"good":"bad");
       await dvSleep(800);
@@ -2686,6 +2694,7 @@ async function dvAsk(it,tok){
       const r=await dvListen("en",tok);
       if(!dvAlive(tok)) return;
       const ok=dvMatchEn(r.alts,it.en);
+      if(ok) it.rep=(it.rep||0)+1;
       dvMark(ok); dvBeep(ok);
       dvShow(ok?"Добре!":"Послухай ще раз", full, tr, r.alts[0]?("Почув: «"+r.alts[0]+"»"):"Нічого не почув", ok?"good":"bad");
       if(!ok) await dvSay(it.en,"en",tok,.7); else await dvSleep(600);
@@ -2835,6 +2844,7 @@ async function dvFinish(complete){
     if(!i.intro && !i.review) return;
     const k=wkey(i.lv,i.en);
     if(DV.voice && (i.done || i.err)) markAnswer(i.lv,i.en, i.done);
+    else if(DV.voice && i.ok>0) markAnswer(i.lv,i.en, true);   /* зупинили раніше, але відповіді були правильні */
     else { const w=S.words[k]||{b:0,due:0,seen:0,ok:0,err:0}; w.seen=Math.max(w.seen||0,1); S.words[k]=w; }
     if(DV.voice && i.err>=2){ const w=S.words[k]; if(w && w.status!=="repeat"){ w.status="repeat"; } }
   });
@@ -2843,17 +2853,25 @@ async function dvFinish(complete){
   S.stats.drive=(S.stats.drive||0)+1;
   save();
   const learned=newItems.filter(i=>i.done).length, errs=items.reduce((s,i)=>s+i.err,0);
+  const good=items.reduce((s,i)=>s+(i.ok||0)+(i.rep||0),0);
   $("#dv-run").style.display="none"; $("#dv-done").style.display="block";
-  $("#dv-big").textContent = learned+" / "+items.filter(i=>!i.review).length;
-  $("#dv-msg").textContent = (complete?"Поїздку завершено":"Зупинено")+" · "+mmss(Date.now()-DV.start)
-     +" · помилок: "+errs;
-  $("#dv-list").innerHTML = items.filter(i=>i.intro).map(i=>
-    '<div class="dv-row"><span>'+i.em+'</span><b>'+i.en+'</b><span style="color:var(--dim)">'+i.ua+'</span>'
-    +'<span class="m '+(i.done&&!i.err?"ok":(i.done?"ok":"no"))+'">'+(i.done?(i.err?"✓ ("+i.err+" пом.)":"✓"):"…")+'</span></div>').join("");
+  $("#dv-big").innerHTML = '<span style="color:var(--green)">'+good+'</span>';
+  $("#dv-msg").innerHTML = 'правильних відповідей'
+     +'<div class="dv-sum"><span>'+(complete?"Поїздку завершено":"Зупинено")+' · '+mmss(Date.now()-DV.start)+'</span>'
+     +'<span>Повністю вивчено: <b>'+learned+' з '+items.filter(i=>!i.review).length+'</b></span>'
+     +'<span>Помилок: <b style="color:'+(errs?'var(--coral)':'inherit')+'">'+errs+'</b></span></div>';
+  /* по кожному слову — 5 кроків закріплення: ●●○○○ */
+  $("#dv-list").innerHTML = items.filter(i=>i.intro).map(i=>{
+    const stepN = i.done ? DV_DONE-1 : Math.max(0,i.stage-1);
+    const pips = Array.from({length:DV_DONE-1},(_,k)=>'<i class="'+(k<stepN?"on":"")+'"></i>').join("");
+    return '<div class="dv-row"><span>'+i.em+'</span><div style="min-width:0"><b>'+i.en+'</b> <span style="color:var(--dim)">'+i.ua+'</span>'
+      +(i.err?'<div style="color:var(--coral);font-size:12px">помилок: '+i.err+'</div>':'')+'</div>'
+      +'<span class="m">'+(i.done?'<span class="ok">✓</span>':'<span class="dv-pips">'+pips+'</span>')+'</span></div>'; }).join("")
+    + '<div class="dv-note">Слово стає «повністю вивченим» після 5 правильних відповідей з паузами (≈10–15 хв). Кружечки показують, скільки кроків уже пройдено.</div>';
   dvWake(false);
   if(complete){
     const d=DV, tok=++d.tok; d.stopped=false; d.paused=false;
-    await dvSay("Готово! Вивчено "+learned+" з "+items.filter(i=>!i.review).length+". "+(errs?("Помилок: "+errs+"."):"Без жодної помилки!"),"uk",tok);
+    await dvSay("Готово! Правильних відповідей: "+good+". Повністю вивчено "+learned+" з "+items.filter(i=>!i.review).length+". "+(errs?("Помилок: "+errs+"."):"Без жодної помилки!"),"uk",tok);
     d.stopped=true;
   }
 }
