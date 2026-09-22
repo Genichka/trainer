@@ -734,6 +734,15 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 :root[data-theme="grafana"] .lvpick .st.lvdesc{font-weight:500}
 :root[data-theme="grafana"] .brand .tag{font-weight:500;letter-spacing:.5px}
 :root[data-theme="grafana"] .tiles .lt{text-transform:uppercase}
+.verline{text-align:center;color:var(--dim);font-size:11.5px;padding:8px 0 4px}
+.verline b{color:var(--chalk);font-weight:600}
+.updbar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 8px);z-index:30;display:flex;align-items:center;gap:12px;
+  background:var(--board-lt);border:1px solid var(--yellow);border-radius:var(--r);padding:9px 10px 9px 14px;font-size:14px;max-width:94%;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.updbar[hidden]{display:none}
+.updbar button{border:0;border-radius:var(--r);padding:8px 14px;font:inherit;font-weight:600;background:var(--yellow);color:#111;cursor:pointer}
+:root[data-theme="grafana"] .updbar button{background:#3d71d9;color:#fff}
+.gearbtn{display:flex;align-items:center;justify-content:center;padding:0}
+.gearbtn svg{width:24px;height:24px}
 .themes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .themes button{border:2px solid transparent;border-radius:14px;padding:8px 6px 7px;font:inherit;font-size:12.5px;font-weight:700;
   cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
@@ -761,7 +770,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 <!-- ===== СТАРТ ===== -->
 <section id="s-home" class="screen on">
   <div class="head">
-    <div class="ava" id="ava-home">🙂</div>
+    <button class="hdr-ic gearbtn" id="ava-home" title="Налаштування" aria-label="Налаштування"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" style="stroke:var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     <div style="flex:1"><h1 id="hi-home">Привіт</h1><div class="sub" id="home-sub">Англійська щодня</div></div>
     <button class="hdr-ic" id="h-stats" title="Статистика">📊</button>
   </div>
@@ -786,6 +795,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
   <button class="skill" style="--c:var(--sky)" data-go="drive"><span class="ic">🚗</span>
     <div><div class="t">За кермом</div><div class="d">Голосом, без екрана · 12 тем</div></div></button>
   <div class="spacer"></div>
+  <div class="verline" id="ver-skill"></div>
 </section>
 
 <!-- ===== ВЧИТИ ===== -->
@@ -1016,6 +1026,8 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
     <div><div class="t">Лише іменники</div><div class="d" id="nouns-st"></div></div></button>
   <button class="tile" id="m-sound"><div class="em">🔊</div>
     <div><div class="t">Озвучення</div><div class="d" id="sound-st"></div></div></button>
+  <button class="tile" id="m-upd"><div class="em">🔄</div>
+    <div><div class="t">Перевірити оновлення</div><div class="d" id="ver-more"></div></div></button>
   <button class="tile" id="m-remind"><div class="em">🔔</div>
     <div><div class="t">Щоденне нагадування</div><div class="d" id="remind-st"></div></div></button>
   <div class="chips" id="chips-remind"></div>
@@ -1156,6 +1168,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="updbar" id="updbar" hidden><span id="upd-txt">Є нова версія</span><button id="upd-go">Оновити</button></div>
 
 <div class="modal" id="modal-note">
   <div class="box">
@@ -1739,9 +1752,43 @@ function renderThemes(){
     box.appendChild(b);
   });
 }
+/* ==================== версія і автооновлення ====================
+   APP_VERSION міняється з кожним випуском. Гра періодично питає сайт,
+   чи там не новіша версія; якщо так — показує смужку «Оновити»,
+   а на спокійних екранах (не посеред тренування) оновлюється сама. */
+const APP_VERSION="2026.09.22 14:40";
+function renderVersion(){
+  const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
+  ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
+}
+let updFound=null, updChecking=false;
+async function checkUpdate(manual){
+  if(updChecking) return; updChecking=true;
+  try{
+    if(location.protocol==="file:"){ if(manual) toast("Перевірка оновлень працює лише на сайті"); return; }
+    const r=await fetch("./index.html?nocache="+Date.now(),{cache:"no-store"});
+    const txt=await r.text();
+    const m=txt.match(/const APP_VERSION="([^"]+)"/);
+    if(m && m[1]!==APP_VERSION){
+      updFound=m[1];
+      try{ const reg=await navigator.serviceWorker.getRegistration(); reg&&reg.update(); }catch(e){}
+      const busy = !!(overlay && overlay!=="s-drive") || (typeof DV!=="undefined" && DV && !DV.stopped);
+      if(!busy && (tab==="s-home"||tab==="s-skill") && !manual){ doUpdate(); return; }
+      $("#upd-txt").textContent="Нова версія "+updFound;
+      $("#updbar").hidden=false;
+    } else if(manual) toast("У тебе найновіша версія");
+  }catch(e){ if(manual) toast("Не вдалося перевірити — немає інтернету?"); }
+  finally{ updChecking=false; }
+}
+async function doUpdate(){
+  try{ save(); }catch(e){}
+  try{ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }catch(e){}
+  location.replace(location.pathname+"?v="+encodeURIComponent(updFound||Date.now()));
+}
+
 /* ==================== старт і меню ==================== */
 function renderHome(){
-  $("#ava-home").textContent=S.ava;
+
   $("#hi-home").textContent="Hello, "+S.name+"!"+((ALL.theme||"grafana")==="grafana"?"":" 👋");
   const st=streak();
   $("#home-sub").textContent = st ? ("🔥 днів поспіль: "+st) : "Англійська щодня";
@@ -2518,8 +2565,11 @@ function dvListen(lang,tok){
     r.onend=fin;
     const t=setTimeout(()=>{ try{ r.stop(); }catch(e){} setTimeout(fin,900); },8000);
     if(DV) DV.rec=r;
-    dvViz("listen"); dvTick2();
-    { const hd=$("#dv-heard"); if(hd) hd.textContent="🎙 Говори…"; }
+    dvViz("listen");
+    /* сигнал «говори» — лише коли мікрофон справді почав слухати, інакше початок слова обрізається */
+    let cued=false; const cue=()=>{ if(cued||done) return; cued=true; dvTick2(); const hd=$("#dv-heard"); if(hd) hd.textContent="🎙 Говори…"; };
+    { const hd=$("#dv-heard"); if(hd) hd.textContent="…"; }
+    r.onaudiostart=cue; r.onstart=()=>setTimeout(cue,350); setTimeout(cue,1500);
     try{ r.start(); }catch(e){ err="start"; fin(); }
   });
 }
@@ -2672,14 +2722,7 @@ async function dvAsk(it,tok){
     else if(type==="ua2en"){ dvShow("Скажи англійською", it.em, it.ua, "", "");
       if(first) await dvSay("Тепер навпаки: я кажу українською, ти кажеш англійське слово.","uk",tok);
       await dvSay("Як англійською: "+dvClean(it.ua)+"?","uk",tok); }
-    else { const s=sentOf(it.en), i=s.indexOf("{}");
-      dvShow("Доповни речення", s.replace("{}","___"), it.ua, "", "");
-      if(first) await dvSay("Завдання: у реченні замість слова буде сигнал. Скажи пропущене слово англійською.","uk",tok);
-      await dvSay("Речення:","uk",tok);
-      if(/[a-z]/i.test(s.slice(0,i))) await dvSay(s.slice(0,i),"en",tok);
-      dvBeep(true); await dvSleep(450);
-      if(/[a-z]/i.test(s.slice(i+2))) await dvSay(s.slice(i+2),"en",tok);
-      await dvSay("Яке слово пропущене?","uk",tok); }
+    /* речень за кермом немає — їх треба читати */
   };
   await prompt();
   let right=false, heard="", retried=false;
@@ -2705,6 +2748,7 @@ async function dvAsk(it,tok){
         dvShow(cur, wd, tr0, "Нічого не почув", "");
         await dvSay("Не почув. Скажи ще раз.","uk",tok); continue; }
       heard=r.alts[0]||"";
+      if(heard){ it.heard=it.heard||[]; if(!it.heard.includes(heard)) it.heard.push(heard); }
       if(wrongs<1 && r.alts.length){
         wrongs++; retried=true;
         dvMark(false); dvBeep(false);
@@ -2917,7 +2961,7 @@ async function dvFinish(complete){
     const stepN = i.done ? DV_DONE-1 : Math.max(0,i.stage-1);
     const pips = Array.from({length:DV_DONE-1},(_,k)=>'<i class="'+(k<stepN?"on":"")+'"></i>').join("");
     return '<div class="dv-row"><span>'+i.em+'</span><div style="min-width:0"><b>'+i.en+'</b> <span class="dv-ipa sm">'+ipaOf(i.en)+'</span> <span style="color:var(--dim)">'+i.ua+'</span>'
-      +(i.err?'<div style="color:var(--coral);font-size:12px">помилок: '+i.err+'</div>':'')+'</div>'
+      +(i.err?'<div style="color:var(--coral);font-size:12px">помилок: '+i.err+(i.heard&&i.heard.length?' · чув: «'+i.heard.slice(-3).map(escH).join('», «')+'»':'')+'</div>':'')+'</div>'
       +'<span class="m">'+(i.done?'<span class="ok">✓</span>':'<span class="dv-pips">'+pips+'</span>')+'</span></div>'; }).join("")
     + '<div class="dv-note">Слово стає «повністю вивченим» після 5 правильних відповідей з паузами (≈10–15 хв). Кружечки показують, скільки кроків уже пройдено.</div>';
   dvWake(false);
@@ -3949,6 +3993,7 @@ $("#c-skip").onclick    =()=>{
 $("#w-hint").onclick    =hintLetter;
 $("#w-check").onclick   =checkCw;
 $("#pf-add").onclick    =()=>openProfileEdit(null);
+$("#m-upd").onclick=()=>checkUpdate(true);
 $("#m-nouns").onclick=()=>{ S.nounsOnly=!S.nounsOnly; save(); renderProfiles(); toast(S.nounsOnly?"Тепер тренуються лише іменники":"Тепер тренуються всі слова"); };
 $("#m-sound").onclick   =()=>{ S.sound=!S.sound; save(); renderProfiles(); toast(S.sound?"Озвучення увімкнено":"Озвучення вимкнено"); };
 $("#m-remind").onclick  =toggleRemind;
@@ -3991,6 +4036,11 @@ if(!ALL.gf1){ ALL.gf1=1; ALL.theme="grafana"; save(); }
 applyTheme(ALL.theme);
 showTab("s-home");
 checkRemind();
+renderVersion();
+$("#upd-go").onclick=doUpdate;
+setTimeout(()=>checkUpdate(false),3000);
+setInterval(()=>checkUpdate(false),5*60*1000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) checkUpdate(false); });
 
 </script>
 <script>
