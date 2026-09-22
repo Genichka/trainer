@@ -1756,7 +1756,7 @@ function renderThemes(){
    APP_VERSION міняється з кожним випуском. Гра періодично питає сайт,
    чи там не новіша версія; якщо так — показує смужку «Оновити»,
    а на спокійних екранах (не посеред тренування) оновлюється сама. */
-const APP_VERSION="2026.09.22 14:50";
+const APP_VERSION="2026.09.22 15:00";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -2622,7 +2622,7 @@ function dvMatchEn(alts,target){
     if(!a) return false;
     if(a===t || an===tn || (" "+a+" ").includes(" "+t+" ")) return true;
     /* дрібні відхилення в написанні: boot/boat, colour/color */
-    if(tn.length>=4 && lev(an,tn)<=1) return true;
+    if(tn.length>=4 && lev(an,tn)<=1 && (tn.length>=6 || an[0]===tn[0])) return true;
     if(tn.length>=8 && lev(an,tn)<=2) return true;
     /* розпізнавач дописав закінчення: factory → factoring, plan → planning */
     const words=a.split(" ");
@@ -2635,6 +2635,9 @@ function dvMatchEn(alts,target){
     const ak=a.split(" ").map(mkey);
     if(tkn && ak.join("")===tkn) return true;
     if(!t.includes(" ") && tkn.length>=2 && ak.includes(tkn)) return true;
+    /* ще м'якше для коротких слів: без r/h/w/y і дзвінкий=глухий (girl≈call, bet≈pet) */
+    const loose=k=>k.replace(/[RHWY]/g,"").replace(/G/g,"K").replace(/B/g,"P").replace(/D/g,"T").replace(/Z/g,"S").replace(/J/g,"K");
+    if(!t.includes(" ") && tn.length<=6){ const lt=loose(tkn); if(lt.length>=2 && ak.some(k=>loose(k)===lt)) return true; }
     return false; });
 }
 function dvNormUa(s){ return String(s).toLowerCase().replace(/[’ʼ`]/g,"'").replace(/ё/g,"е").replace(/[^a-zа-яіїєґ0-9' ]+/g," ").replace(/\s+/g," ").trim(); }
@@ -2734,7 +2737,7 @@ async function dvAsk(it,tok){
     /* речень за кермом немає — їх треба читати */
   };
   await prompt();
-  let right=false, heard="", retried=false;
+  let right=false, heard="", retried=false, silent=false;
   if(DV.voice){
     let tries=0, reps=0, wrongs=0;
     while(true){
@@ -2753,9 +2756,12 @@ async function dvAsk(it,tok){
       if(ok){ right=true; heard=r.alts[0]||""; break; }
       if(cmd==="skip"){ break; }
       if(cmd==="repeat" && reps<3){ reps++; await prompt(); continue; }
-      if(!r.alts.length && tries<1){ tries++;
-        dvShow(cur, wd, tr0, "Нічого не почув", "");
-        await dvSay("Не почув. Скажи ще раз.","uk",tok); continue; }
+      if(!r.alts.length){
+        if(tries<1){ tries++;
+          dvShow(cur, wd, tr0, "Нічого не почув", "");
+          await dvSay("Не почув. Скажи ще раз.","uk",tok); continue; }
+        silent=true; break;          /* телефон нічого не розпізнав — це не твоя помилка */
+      }
       heard=r.alts[0]||"";
       if(heard){ it.heard=it.heard||[]; if(!it.heard.includes(heard)) it.heard.push(heard); }
       if(wrongs<1 && r.alts.length){
@@ -2777,13 +2783,20 @@ async function dvAsk(it,tok){
   const full = it.em+" "+it.en, tr=it.ua;
   if(right){
     it.ok++;
-    if(retried){ it.err++; } else it.stage++;       /* з другої спроби — зараховуємо, але крок не піднімаємо */
+    if(!retried) it.stage++;       /* з другої спроби — зараховуємо, але крок не піднімаємо */
     if(DV.voice){ dvMark(true); dvBeep(true); }
     dvShow(DV.voice?(retried?"Правильно, з другої спроби":"Правильно!"):"Відповідь", full, tr, heard?("Почув: «"+heard+"»"):"", "good");
     if(!DV.voice) await dvSay(ansLang==="en"?it.en:dvClean(it.ua), ansLang, tok);
     else if(ansLang==="en") await dvSay(it.en,"en",tok);
     if(it.stage>=DV_DONE){ it.done=true; await dvSay(it.review?"Повторено.":"Вивчено!","uk",tok); }
     else it.next=Date.now()+DV_INT[it.stage];
+  } else if(silent){
+    /* нічого не розпізнано двічі: без штрафу — просто нагадуємо слово і йдемо далі */
+    it.next=Date.now()+DV_INT[Math.max(1,it.stage)];
+    dvMark(null);
+    dvShow("Не чую тебе", full, tr, "Мікрофон нічого не розпізнав — без штрафу", "");
+    await dvSay("Не чую. Це слово:","uk",tok);
+    await dvSay(it.en,"en",tok,.75);
   } else {
     it.err++; it.stage=Math.max(1,it.stage-1); it.next=Date.now()+DV_INT[1];
     dvMark(false); dvBeep(false);
