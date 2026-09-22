@@ -2529,11 +2529,56 @@ function lev(a,b){ const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
   return p[n]; }
 function dvNormEn(s){ return String(s).toLowerCase().replace(/[’ʼ`]/g,"'").replace(/[^a-z0-9' ]+/g," ").replace(/\s+/g," ").trim()
   .replace(/^(a|an|the|to) /,""); }
+/* Спрощений Metaphone: звуковий «ключ» слова, щоб boat≈both≈boot, cash≈catch≈cache */
+function metaKey(w){
+  let s=String(w).toLowerCase().replace(/[^a-z]/g,""); if(!s) return "";
+  if(/^(kn|gn|pn|ae|wr)/.test(s)) s=s.slice(1);
+  if(s[0]==="x") s="s"+s.slice(1);
+  if(s.startsWith("wh")) s="w"+s.slice(2);
+  const V="aeiou"; let out=""; 
+  for(let i=0;i<s.length;i++){
+    const c=s[i], p=s[i-1]||"", n=s[i+1]||"", n2=s[i+2]||"";
+    if(c===p && c!=="c") continue;
+    if(V.includes(c)){ if(i===0) out+="A"; continue; }
+    switch(c){
+      case "b": if(!(p==="m"&&i===s.length-1)) out+="B"; break;
+      case "c": if(n==="i"&&n2==="a"||n==="h") { out+="X"; i+= n==="h"?1:0; }
+                else if("iey".includes(n)) out+= p==="s"?"":"S"; else out+="K"; break;
+      case "d": if(n==="g"&&"iey".includes(n2)){ out+="J"; i++; } else out+="T"; break;
+      case "g": if(n==="h"&&!(V.includes(n2)||i+2>=s.length)) break;
+                if(n==="n"&&(i+2===s.length||s.slice(i+1)==="ned")) break;
+                if("iey".includes(n)) out+="J"; else out+="K"; break;
+      case "h": if(V.includes(n)&&!"csptg".includes(p)) out+="H"; break;
+      case "k": if(p!=="c") out+="K"; break;
+      case "p": if(n==="h"){ out+="F"; i++; } else out+="P"; break;
+      case "q": out+="K"; break;
+      case "s": if(n==="h"){ out+="X"; i++; } else if(n==="i"&&"oa".includes(n2)) out+="X"; else out+="S"; break;
+      case "t": if(n==="i"&&"oa".includes(n2)) out+="X"; else if(n==="h"){ out+="0"; i++; } else if(!(n==="c"&&n2==="h")) out+="T"; break;
+      case "v": out+="F"; break;
+      case "w": case "y": if(V.includes(n)) out+=c.toUpperCase(); break;
+      case "x": out+="KS"; break;
+      case "z": out+="S"; break;
+      default: out+=c.toUpperCase();
+    }
+  }
+  return out;
+}
+/* th вимовляють як t/s — для порівняння вважаємо 0 (th) рівним T */
+const mkey=w=>metaKey(w).replace(/0/g,"T");
 function dvMatchEn(alts,target){
   const t=dvNormEn(target), tn=t.replace(/[ ']/g,"");
+  const tk=t.split(" ").map(mkey).join(" "), tkn=tk.replace(/ /g,"");
   return alts.some(a0=>{ const a=dvNormEn(a0), an=a.replace(/[ ']/g,"");
+    if(!a) return false;
     if(a===t || an===tn || (" "+a+" ").includes(" "+t+" ")) return true;
-    return tn.length>=5 && lev(an,tn)<=1; });
+    /* дрібні відхилення в написанні: boot/boat, colour/color */
+    if(tn.length>=4 && lev(an,tn)<=1) return true;
+    if(tn.length>=8 && lev(an,tn)<=2) return true;
+    /* звукова схожість: boat≈bought, cash≈catch — розпізнавач часто пише співзвучне слово */
+    const ak=a.split(" ").map(mkey);
+    if(tkn && ak.join("")===tkn) return true;
+    if(!t.includes(" ") && tkn.length>=2 && ak.includes(tkn)) return true;
+    return false; });
 }
 function dvNormUa(s){ return String(s).toLowerCase().replace(/[’ʼ`]/g,"'").replace(/ё/g,"е").replace(/[^a-zа-яіїєґ0-9' ]+/g," ").replace(/\s+/g," ").trim(); }
 function dvMatchUa(alts,ua){
@@ -2582,8 +2627,6 @@ async function dvIntro(it,tok){
   await dvSay("Нове слово.","uk",tok);
   await dvSay(it.en,"en",tok,.75);
   await dvSay("Переклад: "+dvClean(it.ua)+".","uk",tok);
-  const s=sentOf(it.en);
-  if(s){ await dvSay("Приклад:","uk",tok); await dvSay(s.replace("{}",it.en),"en",tok); }
   if(!dvAlive(tok)) return;
   if(DV.voice){
     let ok=false;
@@ -2615,7 +2658,8 @@ function dvMicDenied(){
   toast("Немає доступу до мікрофона — перемкнув на «Лише слухаю»");
 }
 async function dvAsk(it,tok){
-  const type = it.stage===1 ? "en2ua" : (it.stage===4 && sentOf(it.en)) ? "sent" : "ua2en";
+  /* за кермом без речень: лише «англ → укр» і «укр → англ» */
+  const type = it.stage===1 ? "en2ua" : "ua2en";
   const ansLang = type==="en2ua" ? "uk" : "en";
   const answer = type==="en2ua" ? it.ua : it.en;
   const prompt=async()=>{
