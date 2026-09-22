@@ -1756,7 +1756,7 @@ function renderThemes(){
    APP_VERSION міняється з кожним випуском. Гра періодично питає сайт,
    чи там не новіша версія; якщо так — показує смужку «Оновити»,
    а на спокійних екранах (не посеред тренування) оновлюється сама. */
-const APP_VERSION="2026.09.22 15:00";
+const APP_VERSION="2026.09.22 16:00";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -2577,7 +2577,8 @@ function lev(a,b){ const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
   let p=Array.from({length:n+1},(_,j)=>j);
   for(let i=1;i<=m;i++){ const c=[i]; for(let j=1;j<=n;j++) c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1)); p=c; }
   return p[n]; }
-function dvNormEn(s){ return String(s).toLowerCase().replace(/[’ʼ`]/g,"'").replace(/[^a-z0-9' ]+/g," ").replace(/\s+/g," ").trim()
+const DV_NUM=["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty"];
+function dvNormEn(s){ return String(s).toLowerCase().replace(/\b(\d{1,2})\b/g,(m,d)=>DV_NUM[+d]||m).replace(/[’ʼ`]/g,"'").replace(/[^a-z0-9' ]+/g," ").replace(/\s+/g," ").trim()
   .replace(/^(a|an|the|to) /,""); }
 /* Спрощений Metaphone: звуковий «ключ» слова, щоб boat≈both≈boot, cash≈catch≈cache */
 function metaKey(w){
@@ -2622,7 +2623,7 @@ function dvMatchEn(alts,target){
     if(!a) return false;
     if(a===t || an===tn || (" "+a+" ").includes(" "+t+" ")) return true;
     /* дрібні відхилення в написанні: boot/boat, colour/color */
-    if(tn.length>=4 && lev(an,tn)<=1 && (tn.length>=6 || an[0]===tn[0])) return true;
+    if(tn.length>=4 && lev(an,tn)<=1 && (tn.length>=6 || an[0]===tn[0] || an.endsWith(tn) || an.startsWith(tn))) return true;
     if(tn.length>=8 && lev(an,tn)<=2) return true;
     /* розпізнавач дописав закінчення: factory → factoring, plan → planning */
     const words=a.split(" ");
@@ -2636,7 +2637,7 @@ function dvMatchEn(alts,target){
     if(tkn && ak.join("")===tkn) return true;
     if(!t.includes(" ") && tkn.length>=2 && ak.includes(tkn)) return true;
     /* ще м'якше для коротких слів: без r/h/w/y і дзвінкий=глухий (girl≈call, bet≈pet) */
-    const loose=k=>k.replace(/[RHWY]/g,"").replace(/G/g,"K").replace(/B/g,"P").replace(/D/g,"T").replace(/Z/g,"S").replace(/J/g,"K");
+    const loose=k=>k.replace(/[RHWY]/g,"").replace(/G/g,"K").replace(/B/g,"P").replace(/D/g,"T").replace(/Z/g,"S").replace(/J/g,"K").replace(/N/g,"M");
     if(!t.includes(" ") && tn.length<=6){ const lt=loose(tkn); if(lt.length>=2 && ak.some(k=>loose(k)===lt)) return true; }
     return false; });
 }
@@ -2760,7 +2761,7 @@ async function dvAsk(it,tok){
         if(tries<1){ tries++;
           dvShow(cur, wd, tr0, "Нічого не почув", "");
           await dvSay("Не почув. Скажи ще раз.","uk",tok); continue; }
-        silent=true; break;          /* телефон нічого не розпізнав — це не твоя помилка */
+        silent=true; it.silent=(it.silent||0)+1; break;          /* телефон нічого не розпізнав — це не твоя помилка */
       }
       heard=r.alts[0]||"";
       if(heard){ it.heard=it.heard||[]; if(!it.heard.includes(heard)) it.heard.push(heard); }
@@ -2983,7 +2984,8 @@ async function dvFinish(complete){
     const stepN = i.done ? DV_DONE-1 : Math.max(0,i.stage-1);
     const pips = Array.from({length:DV_DONE-1},(_,k)=>'<i class="'+(k<stepN?"on":"")+'"></i>').join("");
     return '<div class="dv-row"><span>'+i.em+'</span><div style="min-width:0"><b>'+i.en+'</b> <span class="dv-ipa sm">'+ipaOf(i.en)+'</span> <span style="color:var(--dim)">'+i.ua+'</span>'
-      +(i.err?'<div style="color:var(--coral);font-size:12px">помилок: '+i.err+(i.heard&&i.heard.length?' · чув: «'+i.heard.slice(-3).map(escH).join('», «')+'»':'')+'</div>':'')+'</div>'
+      +(i.err?'<div style="color:var(--coral);font-size:12px">помилок: '+i.err+(i.heard&&i.heard.length?' · чув: «'+i.heard.slice(-3).map(escH).join('», «')+'»':'')+'</div>':'')
+      +(i.silent?'<div style="color:var(--dim);font-size:12px">мікрофон не розпізнав: '+i.silent+' раз(и)</div>':'')+'</div>'
       +'<span class="m">'+(i.done?'<span class="ok">✓</span>':'<span class="dv-pips">'+pips+'</span>')+'</span></div>'; }).join("")
     + '<div class="dv-note">Слово стає «повністю вивченим» після 5 правильних відповідей з паузами (≈10–15 хв). Кружечки показують, скільки кроків уже пройдено.</div>';
   dvWake(false);
