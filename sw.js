@@ -1,4 +1,4 @@
-const CACHE_NAME = "slova-pwa-v21";
+const CACHE_NAME = "slova-pwa-v22";
 
 const APP_FILES = [
   "./",
