@@ -425,6 +425,21 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .dv-tr{font-size:20px;color:var(--sky)}
 .dv-heard{font-size:15px;color:var(--dim);min-height:20px}
 .dv-hint{font-size:12.5px;color:var(--dim);margin-top:10px}
+.dv-viz{display:flex;align-items:center;justify-content:center;gap:4px;height:46px;width:150px;margin:2px auto}
+.dv-viz i{display:block;width:7px;height:6%;border-radius:4px;background:color-mix(in srgb,var(--chalk) 25%,transparent);transition:height .09s linear}
+.dv-viz.speak i{background:var(--sky)}
+.dv-viz.listen i{background:var(--green)}
+.dv-viz.off i{height:6%!important}
+.dv-mark{height:0;overflow:hidden;font-size:0}
+.dv-mark.on{flex:none;height:96px;width:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:60px;font-weight:700;
+  color:#fff;margin:0 auto;animation:dvpop .3s}
+.dv-viz{flex:none}
+.dv-mark.ok{background:#1a7f4b}.dv-mark.no{background:#d10e5c}
+@keyframes dvpop{0%{transform:scale(.3)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+.dv-testbox{margin-top:10px;padding:14px;border:1px solid color-mix(in srgb,var(--chalk) 14%,transparent);border-radius:var(--r);background:var(--board-lt);text-align:center}
+.dv-tmsg{font-size:14px;line-height:1.45;margin:8px 0}
+.dv-tmsg:empty{display:none}
+#dv-tbtns:empty{display:none}
 .dv-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid color-mix(in srgb,var(--chalk) 10%,transparent)}
 .dv-row .m{margin-left:auto;font-weight:700}
 .dv-row .m.ok{color:var(--green)} .dv-row .m.no{color:var(--coral)}
@@ -806,9 +821,20 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
     <div class="chips" id="dv-count"></div>
     <div class="sect">Перевірка відповіді</div>
     <div class="chips" id="dv-mode"></div>
+    <div class="sect">Темп мовлення</div>
+    <div class="chips" id="dv-tempo"></div>
     <div class="dv-info" id="dv-info"></div>
     <div class="dv-warn" id="dv-warn"></div>
-    <button class="btn ghost sm" id="dv-test" style="margin-top:12px">🔊 Перевірити звук і мікрофон</button>
+    <div class="row2" style="margin-top:12px">
+      <button class="btn ghost sm" id="dv-tspk">🔊 Перевірити динамік</button>
+      <button class="btn ghost sm" id="dv-tmic">🎤 Перевірити мікрофон</button>
+    </div>
+    <div class="dv-testbox" id="dv-testbox" hidden>
+      <div class="dv-mark" id="dv-tmark"></div>
+      <div class="dv-viz off" id="dv-tviz"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="dv-tmsg" id="dv-tmsg"></div>
+      <div class="row2" id="dv-tbtns"></div>
+    </div>
     <div class="dv-info" id="dv-diag"></div>
     <button class="btn primary" id="dv-go" style="margin:14px 0">Поїхали</button>
   </div>
@@ -822,6 +848,8 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
       <div class="dv-state" id="dv-state"></div>
       <div class="dv-word" id="dv-word"></div>
       <div class="dv-tr" id="dv-tr"></div>
+      <div class="dv-mark" id="dv-mark"></div>
+      <div class="dv-viz off" id="dv-viz"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="dv-heard" id="dv-heard"></div>
       <div class="dv-hint" id="dv-hint">Торкнись будь-де — пауза</div>
     </button>
@@ -2285,7 +2313,7 @@ let DV=null, dvAudio=null, dvLock=null;
 function openDrive(){
   try{ speechSynthesis.getVoices(); }catch(e){}
   $("#dv-setup").style.display="block"; $("#dv-run").style.display="none"; $("#dv-done").style.display="none";
-  $("#dv-diag").innerHTML=""; renderDriveSetup(); openOverlay("s-drive");
+  $("#dv-diag").innerHTML=""; $("#dv-testbox").hidden=true; renderDriveSetup(); openOverlay("s-drive");
 }
 function dvVoice(lang){
   try{ const vs=speechSynthesis.getVoices();
@@ -2312,6 +2340,10 @@ function renderDriveSetup(){
     b.onclick=()=>{ c.n=n; save(); renderDriveSetup(); };
     cb.appendChild(b);
   });
+  const tb=$("#dv-tempo"); tb.innerHTML=""; c.tempo=c.tempo||"slow";
+  [["slow","Повільно, з паузами"],["normal","Звичайно"]].forEach(([v,t])=>{
+    const b=document.createElement("button"); b.className="chip"+(c.tempo===v?" on":"");
+    b.textContent=t; b.onclick=()=>{ c.tempo=v; save(); renderDriveSetup(); }; tb.appendChild(b); });
   const mb=$("#dv-mode"); mb.innerHTML="";
   [[true,"Відповідаю голосом"],[false,"Лише слухаю"]].forEach(([v,t])=>{
     const b=document.createElement("button"); b.className="chip"+(c.voice===v?" on":"");
@@ -2422,19 +2454,28 @@ function dvClean(t){ return String(t).replace(/[()]/g,"").replace(/\s+/g," ").tr
 function dvSay(text,lang,tok,rate){
   return new Promise(res=>{
     if(!dvAlive(tok) || !window.speechSynthesis) return res();
-    let done=false; const fin=()=>{ if(done)return; done=true; clearTimeout(t); res(); };
+    let done=false; const fin=()=>{ if(done)return; done=true; clearTimeout(t); dvViz("off");
+      setTimeout(res, (dvCfg().tempo||"slow")==="slow" ? 550 : 300); };   /* коротка пауза між фразами */
     const t=setTimeout(fin, 2500+String(text).length*140);
+    dvViz("speak");
     try{
       const u=new SpeechSynthesisUtterance(text);
       u.lang = lang==="uk" ? "uk-UA" : "en-US";
       const v=dvVoice(lang); if(v) u.voice=v;
-      u.rate = rate || (lang==="uk" ? 1 : .85);
+      const slow=(dvCfg().tempo||"slow")==="slow";
+      u.rate = (rate || (lang==="uk" ? .95 : .85)) * (slow ? .85 : 1);
       u.onend=fin; u.onerror=fin;
       window.__dvU=u;   /* Chrome на Android інколи "губить" фразу без живого посилання */
       try{ if(speechSynthesis.paused) speechSynthesis.resume(); }catch(e){}
       speechSynthesis.speak(u);
     }catch(e){ fin(); }
   });
+}
+function dvTick2(){ /* тихий короткий сигнал «тепер говори» */
+  try{ if(!dvAudio) return; const o=dvAudio.createOscillator(), g=dvAudio.createGain(), t=dvAudio.currentTime;
+    o.type="sine"; o.frequency.setValueAtTime(660,t);
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.12,t+.015); g.gain.exponentialRampToValueAtTime(.0001,t+.12);
+    o.connect(g); g.connect(dvAudio.destination); o.start(t); o.stop(t+.15); }catch(e){}
 }
 function dvBeep(good){
   try{ if(!dvAudio) return; const o=dvAudio.createOscillator(), g=dvAudio.createGain(), t=dvAudio.currentTime;
@@ -2447,14 +2488,23 @@ function dvListen(lang,tok){
   return new Promise(res=>{
     if(!dvAlive(tok) || !DV_REC) return res({alts:[],err:"off"});
     const r=new DV_REC(); r.lang = lang==="uk" ? "uk-UA" : "en-US";
-    r.interimResults=false; r.maxAlternatives=5; r.continuous=false;
-    let alts=[], err=null, done=false;
-    const fin=()=>{ if(done)return; done=true; clearTimeout(t); if(DV&&DV.rec===r) DV.rec=null; res({alts,err}); };
-    r.onresult=e=>{ for(const rr of e.results) for(let i=0;i<rr.length;i++) alts.push(String(rr[i].transcript||"").toLowerCase().trim()); };
+    r.interimResults=true; r.maxAlternatives=5; r.continuous=false;
+    let alts=[], err=null, done=false, interim="";
+    const fin=()=>{ if(done)return; done=true; clearTimeout(t); if(DV&&DV.rec===r) DV.rec=null; dvViz("off");
+      if(!alts.length&&interim) alts.push(interim.toLowerCase().trim()); res({alts,err}); };
+    r.onspeechstart=()=>{ dvVizActive=true; };
+    r.onspeechend=()=>{ dvVizActive=false; };
+    r.onresult=e=>{ interim="";
+      for(let k=e.resultIndex||0;k<e.results.length;k++){ const rr=e.results[k];
+        if(rr.isFinal===false){ interim+=String(rr[0].transcript||""); continue; }
+        for(let i=0;i<rr.length;i++) alts.push(String(rr[i].transcript||"").toLowerCase().trim()); }
+      dvVizActive=true; const hd=$("#dv-heard"); if(hd) hd.textContent="🎙 "+(interim||alts[0]||""); };
     r.onerror=e=>{ err=e.error||"error"; };
     r.onend=fin;
     const t=setTimeout(()=>{ try{ r.stop(); }catch(e){} setTimeout(fin,900); },8000);
     if(DV) DV.rec=r;
+    dvViz("listen"); dvTick2();
+    { const hd=$("#dv-heard"); if(hd) hd.textContent="🎙 Говори…"; }
     try{ r.start(); }catch(e){ err="start"; fin(); }
   });
 }
@@ -2512,24 +2562,32 @@ async function dvLoop(){
   }
 }
 async function dvIntro(it,tok){
+  dvMark(null);
   dvShow("Нове слово", it.em+" "+it.en, it.ua, "", "");
   await dvSay("Нове слово.","uk",tok);
   await dvSay(it.en,"en",tok,.75);
-  await dvSay(dvClean(it.ua),"uk",tok);
-  await dvSay(it.en,"en",tok,.75);
+  await dvSay("Переклад: "+dvClean(it.ua)+".","uk",tok);
   const s=sentOf(it.en);
-  if(s) await dvSay(s.replace("{}",it.en),"en",tok);
+  if(s){ await dvSay("Приклад:","uk",tok); await dvSay(s.replace("{}",it.en),"en",tok); }
   if(!dvAlive(tok)) return;
   if(DV.voice){
-    await dvSay("Повтори.","uk",tok);
-    dvShow("Повтори вголос", it.em+" "+it.en, it.ua, "Слухаю…", "listen");
-    const r=await dvListen("en",tok);
-    if(!dvAlive(tok)) return;
-    if(dvCmd(r.alts)==="stop") return dvStop();
-    const ok=dvMatchEn(r.alts,it.en);
-    dvShow(ok?"Добре":"Послухай ще раз", it.em+" "+it.en, it.ua, r.alts[0]?("Почув: «"+r.alts[0]+"»"):"", ok?"good":"");
-    if(ok) dvBeep(true); else await dvSay(it.en,"en",tok,.7);
-    if(r.err==="not-allowed"||r.err==="service-not-allowed"){ dvMicDenied(); return; }
+    let ok=false;
+    for(let att=0; att<2 && !ok; att++){
+      await dvSay(att?"Спробуй ще раз. Повтори за мною:":"Повтори за мною:","uk",tok);
+      await dvSay(it.en,"en",tok,.7);
+      if(!dvAlive(tok)) return;
+      dvMark(null);
+      dvShow("Повтори вголос", it.em+" "+it.en, it.ua, "", "listen");
+      const r=await dvListen("en",tok);
+      if(!dvAlive(tok)) return;
+      if(r.err==="not-allowed"||r.err==="service-not-allowed"){ dvMicDenied(); break; }
+      if(dvCmd(r.alts)==="stop") return dvStop();
+      ok=dvMatchEn(r.alts,it.en);
+      const heard=r.alts[0]||"";
+      dvMark(ok); dvBeep(ok);
+      dvShow(ok?"Добре!":"Не зовсім", it.em+" "+it.en, it.ua, heard?("Почув: «"+heard+"»"):"Нічого не почув", ok?"good":"bad");
+      await dvSleep(800);
+    }
   } else {
     await dvSleep(1800); await dvSay(it.en,"en",tok,.75);
   }
@@ -2545,25 +2603,33 @@ async function dvAsk(it,tok){
   const ansLang = type==="en2ua" ? "uk" : "en";
   const answer = type==="en2ua" ? it.ua : it.en;
   const prompt=async()=>{
+    dvMark(null);
+    DV.expl=DV.expl||{};
+    const first=!DV.expl[type]; DV.expl[type]=1;
     if(type==="en2ua"){ dvShow("Переклади українською", it.em+" "+it.en, "", "", "");
-      await dvSay("Переклади.","uk",tok); await dvSay(it.en,"en",tok); }
+      if(first) await dvSay("Завдання: я кажу англійське слово, ти кажеш переклад українською.","uk",tok);
+      await dvSay("Переклади на українську:","uk",tok); await dvSay(it.en,"en",tok,.75); }
     else if(type==="ua2en"){ dvShow("Скажи англійською", it.em, it.ua, "", "");
-      await dvSay("Англійською:","uk",tok); await dvSay(dvClean(it.ua),"uk",tok); }
+      if(first) await dvSay("Тепер навпаки: я кажу українською, ти кажеш англійське слово.","uk",tok);
+      await dvSay("Як англійською: "+dvClean(it.ua)+"?","uk",tok); }
     else { const s=sentOf(it.en), i=s.indexOf("{}");
       dvShow("Доповни речення", s.replace("{}","___"), it.ua, "", "");
-      await dvSay("Доповни речення.","uk",tok);
-      if(s.slice(0,i).trim()) await dvSay(s.slice(0,i),"en",tok);
-      dvBeep(true); await dvSleep(350);
-      if(s.slice(i+2).trim()) await dvSay(s.slice(i+2),"en",tok); }
+      if(first) await dvSay("Завдання: у реченні замість слова буде сигнал. Скажи пропущене слово англійською.","uk",tok);
+      await dvSay("Речення:","uk",tok);
+      if(/[a-z]/i.test(s.slice(0,i))) await dvSay(s.slice(0,i),"en",tok);
+      dvBeep(true); await dvSleep(450);
+      if(/[a-z]/i.test(s.slice(i+2))) await dvSay(s.slice(i+2),"en",tok);
+      await dvSay("Яке слово пропущене?","uk",tok); }
   };
   await prompt();
-  let right=false, heard="";
+  let right=false, heard="", retried=false;
   if(DV.voice){
-    let tries=0, reps=0;
+    let tries=0, reps=0, wrongs=0;
     while(true){
       if(!dvAlive(tok)) return;
-      const cur=$("#dv-state").textContent;
-      dvShow(cur, $("#dv-word").textContent, $("#dv-tr").textContent, "Слухаю…", "listen");
+      const cur=$("#dv-state").textContent, wd=$("#dv-word").textContent, tr0=$("#dv-tr").textContent;
+      dvMark(null);
+      dvShow(cur, wd, tr0, "", "listen");
       const r=await dvListen(ansLang,tok);
       if(!dvAlive(tok)) return;
       if(r.err==="not-allowed"||r.err==="service-not-allowed"){ dvMicDenied(); break; }
@@ -2575,8 +2641,18 @@ async function dvAsk(it,tok){
       if(ok){ right=true; heard=r.alts[0]||""; break; }
       if(cmd==="skip"){ break; }
       if(cmd==="repeat" && reps<3){ reps++; await prompt(); continue; }
-      if(!r.alts.length && tries<1){ tries++; await prompt(); continue; }
-      heard=r.alts[0]||""; break;
+      if(!r.alts.length && tries<1){ tries++;
+        dvShow(cur, wd, tr0, "Нічого не почув", "");
+        await dvSay("Не почув. Скажи ще раз.","uk",tok); continue; }
+      heard=r.alts[0]||"";
+      if(wrongs<1 && r.alts.length){
+        wrongs++; retried=true;
+        dvMark(false); dvBeep(false);
+        dvShow("Не зовсім", wd, tr0, "Почув: «"+heard+"»", "bad");
+        await dvSay("Ні. Спробуй ще раз.","uk",tok);
+        continue;
+      }
+      break;
     }
   }
   if(!DV.voice && !right){
@@ -2587,25 +2663,148 @@ async function dvAsk(it,tok){
   if(!dvAlive(tok)) return;
   const full = it.em+" "+it.en, tr=it.ua;
   if(right){
-    it.ok++; it.stage++;
-    dvShow(DV.voice?"Правильно":"Відповідь", full, tr, heard?("Почув: «"+heard+"»"):"", "good");
-    if(DV.voice) dvBeep(true);
+    it.ok++;
+    if(retried){ it.err++; } else it.stage++;       /* з другої спроби — зараховуємо, але крок не піднімаємо */
+    if(DV.voice){ dvMark(true); dvBeep(true); }
+    dvShow(DV.voice?(retried?"Правильно, з другої спроби":"Правильно!"):"Відповідь", full, tr, heard?("Почув: «"+heard+"»"):"", "good");
     if(!DV.voice) await dvSay(ansLang==="en"?it.en:dvClean(it.ua), ansLang, tok);
     else if(ansLang==="en") await dvSay(it.en,"en",tok);
     if(it.stage>=DV_DONE){ it.done=true; await dvSay(it.review?"Повторено.":"Вивчено!","uk",tok); }
     else it.next=Date.now()+DV_INT[it.stage];
   } else {
     it.err++; it.stage=Math.max(1,it.stage-2); it.next=Date.now()+DV_INT[1];
+    dvMark(false); dvBeep(false);
     dvShow("Правильно так:", full, tr, heard?("Почув: «"+heard+"»"):"", "bad");
-    dvBeep(false);
+    await dvSay("Правильна відповідь:","uk",tok);
     await dvSay(ansLang==="en"?it.en:dvClean(it.ua), ansLang, tok, ansLang==="en"?.75:1);
-    if(ansLang==="en" && DV.voice && dvAlive(tok)){
-      await dvSay("Повтори.","uk",tok);
+    if(DV.voice && dvAlive(tok)){
+      /* закріплюємо правильну відповідь: просимо повторити англійське слово */
+      await dvSay("Повтори за мною:","uk",tok);
+      await dvSay(it.en,"en",tok,.7);
+      if(!dvAlive(tok)) return;
+      dvMark(null); dvShow("Повтори вголос", full, tr, "", "listen");
       const r=await dvListen("en",tok);
       if(!dvAlive(tok)) return;
-      if(dvMatchEn(r.alts,it.en)) dvBeep(true); else await dvSay(it.en,"en",tok,.7);
-    } else if(ansLang==="uk"){ await dvSay(it.en,"en",tok,.8); }
+      const ok=dvMatchEn(r.alts,it.en);
+      dvMark(ok); dvBeep(ok);
+      dvShow(ok?"Добре!":"Послухай ще раз", full, tr, r.alts[0]?("Почув: «"+r.alts[0]+"»"):"Нічого не почув", ok?"good":"bad");
+      if(!ok) await dvSay(it.en,"en",tok,.7); else await dvSleep(600);
+    }
   }
+}
+
+/* ---- візуалізація голосу: стовпчики «говорю» / «слухаю» і велика позначка ✓ / ✗ ---- */
+let dvVizMode="off", dvVizActive=false, dvVizT=null;
+const DV_BARS='<i></i>'.repeat(11);
+function dvViz(mode){
+  dvVizMode=mode; dvVizActive=false;
+  const v=$("#dv-viz"); if(!v) return;
+  v.className="dv-viz "+mode;
+  clearInterval(dvVizT); dvVizT=null;
+  if(mode!=="off") dvVizT=setInterval(()=>dvVizDraw(v),100);
+  dvVizDraw(v);
+}
+function dvVizDraw(v){
+  const b=v.children, n=b.length;
+  for(let i=0;i<n;i++){
+    const mid=1-Math.abs(i-(n-1)/2)/((n-1)/2)*.5;   /* вищі стовпчики в центрі */
+    let h=6;
+    if(dvVizMode==="speak") h=(18+Math.random()*72)*mid;
+    else if(dvVizMode==="listen") h= dvVizActive ? (25+Math.random()*75)*mid : 6+Math.random()*8;
+    b[i].style.height=Math.max(6,h)+"%";
+  }
+}
+function dvMark(ok,el){
+  const m=el||$("#dv-mark"); if(!m) return;
+  if(ok==null){ m.className="dv-mark"; m.textContent=""; return; }
+  m.className="dv-mark on "+(ok?"ok":"no"); m.textContent=ok?"✓":"✗";
+}
+
+/* ---- окремі перевірки: динамік і мікрофон ---- */
+let tstT=null;
+function tstBox(msg){ const b=$("#dv-testbox"); b.hidden=false; $("#dv-tmsg").innerHTML=msg||""; $("#dv-tbtns").innerHTML=""; dvMark(null,$("#dv-tmark")); }
+function tstViz(mode,levelFn){
+  const v=$("#dv-tviz"); clearInterval(tstT); tstT=null; v.className="dv-viz "+mode;
+  const draw=()=>{ const b=v.children,n=b.length; const lvl=levelFn?levelFn():null;
+    for(let i=0;i<n;i++){ const mid=1-Math.abs(i-(n-1)/2)/((n-1)/2)*.5; let h=6;
+      if(mode==="speak") h=(18+Math.random()*72)*mid;
+      else if(mode==="listen") h = lvl==null ? 6+Math.random()*8 : 6+Math.min(94,lvl*(0.55+Math.random()*0.45)*mid);
+      b[i].style.height=Math.max(6,h)+"%"; } };
+  if(mode!=="off") tstT=setInterval(draw,90); draw();
+}
+function tstBtn(label,cls,fn){ const b=document.createElement("button"); b.className="btn sm "+cls; b.textContent=label; b.onclick=fn; $("#dv-tbtns").appendChild(b); }
+function tstDone(ok,msg,retry){
+  tstViz("off"); dvMark(ok,$("#dv-tmark")); dvBeep(ok);
+  $("#dv-tmsg").innerHTML=msg; $("#dv-tbtns").innerHTML="";
+  if(!ok && retry) tstBtn("↻ Повторити перевірку","primary",retry);
+}
+function testSpeaker(){
+  try{ dvAudio=dvAudio||new (window.AudioContext||window.webkitAudioContext)(); dvAudio.resume&&dvAudio.resume(); }catch(e){}
+  tstBox("🔊 Слухай: зараз прозвучать дві фрази — англійська й українська…");
+  const tips="Перевір: гучність <b>медіа</b> (кнопкою гучності під час фрази), беззвучний режим, гра відкрита саме в Chrome. "
+    +"Голоси: Налаштування → Мова → Синтез мовлення → Google (англійська й українська).";
+  if(!window.speechSynthesis){ tstDone(false,"Цей браузер не вміє озвучувати текст. Відкрий гру в Google Chrome.",testSpeaker); return; }
+  const lines=[]; let vs=[]; try{ vs=speechSynthesis.getVoices(); }catch(e){}
+  const en=dvVoice("en"), uk=dvVoice("uk");
+  lines.push((en?"✅":"⚠️")+" Англійський голос: "+(en?en.name:"не знайдено"));
+  lines.push((uk?"✅":"⚠️")+" Український голос: "+(uk?uk.name:"не знайдено"));
+  $("#dv-diag").innerHTML=lines.join("<br>");
+  try{ speechSynthesis.cancel(); if(speechSynthesis.paused) speechSynthesis.resume(); }catch(e){}
+  let started=0, ended=0;
+  const mk=(t,lang)=>{ const u=new SpeechSynthesisUtterance(t); u.lang=lang==="uk"?"uk-UA":"en-US";
+    const v=dvVoice(lang); if(v) u.voice=v;
+    u.onstart=()=>{ started++; tstViz("speak"); };
+    u.onend=u.onerror=()=>{ ended++; if(ended>=2) ask(); };
+    return u; };
+  const ask=()=>{ tstViz("off"); clearTimeout(guard);
+    $("#dv-tmsg").innerHTML="Чув обидві фрази?";
+    $("#dv-tbtns").innerHTML="";
+    tstBtn("✓ Так, чую","primary",()=>tstDone(true,"Динамік працює."));
+    tstBtn("✗ Не чую","ghost",()=>tstDone(false,"Звуку не чути. "+tips,testSpeaker)); };
+  const guard=setTimeout(()=>{ if(!started) tstDone(false,"Голос не запустився. "+tips,testSpeaker); else if(ended<2) ask(); },9000);
+  const u1=mk("Hello! This is a sound test.","en"), u2=mk("Привіт! Це перевірка звуку.","uk");
+  window.__dvT=[u1,u2];
+  try{ speechSynthesis.speak(u1); speechSynthesis.speak(u2); }catch(e){ tstDone(false,"Помилка озвучення. "+tips,testSpeaker); }
+}
+async function testMic(){
+  tstBox("🎤 Скажи щось уголос — стовпчики мають рухатися…");
+  let stream=null, ctx=null;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(e){ tstDone(false,"Немає доступу до мікрофона. Дозволь його: значок замка біля адреси сайту → Дозволи → Мікрофон → Дозволити.",testMic); return; }
+  let peak=0, lvl=0;
+  try{
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const src=ctx.createMediaStreamSource(stream), an=ctx.createAnalyser(); an.fftSize=512; src.connect(an);
+    const buf=new Uint8Array(an.fftSize);
+    tstViz("listen",()=>{ an.getByteTimeDomainData(buf); let s=0; for(const x of buf){ const d=(x-128)/128; s+=d*d; }
+      lvl=Math.min(100,Math.sqrt(s/buf.length)*400); peak=Math.max(peak,lvl); return lvl; });
+  }catch(e){}
+  await dvSleep(4000);
+  tstViz("off");
+  try{ stream.getTracks().forEach(t=>t.stop()); }catch(e){} try{ ctx&&ctx.close(); }catch(e){}
+  if(peak<6){ tstDone(false,"Мікрофон нічого не чує. Перевір, чи не закритий він, і говори ближче до телефона.",testMic); return; }
+  if(!DV_REC){ tstDone(true,"Мікрофон чує ✓, але цей браузер не розпізнає мовлення — у «За кермом» працюватиме режим «Лише слухаю»."); return; }
+  /* крок 2: розпізнавання мовлення */
+  const phrase="good morning";
+  $("#dv-tmsg").innerHTML="Мікрофон чує. Тепер скажи англійською: <b>«Good morning»</b>";
+  dvMark(null,$("#dv-tmark"));
+  const res=await new Promise(done=>{
+    const r=new DV_REC(); r.lang="en-US"; r.interimResults=true; r.maxAlternatives=5; r.continuous=false;
+    let alts=[], interim="", err=null, fin=false;
+    const end=()=>{ if(fin)return; fin=true; clearTimeout(t); tstViz("off"); if(!alts.length&&interim) alts.push(interim.toLowerCase()); done({alts,err}); };
+    r.onspeechstart=()=>{}; 
+    r.onresult=e=>{ interim=""; for(let k=e.resultIndex;k<e.results.length;k++){ const rr=e.results[k];
+        if(rr.isFinal){ for(let i=0;i<rr.length;i++) alts.push(String(rr[i].transcript).toLowerCase().trim()); } else interim+=rr[0].transcript; }
+      $("#dv-tmsg").innerHTML="Чую: «"+escH(interim||alts[0]||"")+"»"; };
+    r.onerror=e=>{ err=e.error; }; r.onend=end;
+    const t=setTimeout(()=>{ try{r.stop();}catch(e){} setTimeout(end,900); },7000);
+    tstViz("speak"); try{ r.start(); }catch(e){ err="start"; end(); }
+  });
+  if(res.err==="not-allowed"||res.err==="service-not-allowed"){ tstDone(false,"Chrome заборонив розпізнавання мовлення. Дозволь мікрофон для сайту й повтори.",testMic); return; }
+  if(res.err==="network"){ tstDone(false,"Для розпізнавання потрібен інтернет. Перевір з'єднання.",testMic); return; }
+  const heard=res.alts[0]||"";
+  if(dvMatchEn(res.alts,phrase)) tstDone(true,"Мікрофон і розпізнавання працюють. Почув: «"+escH(heard)+"»");
+  else tstDone(false,(heard?"Почув: «"+escH(heard)+"» — це не «good morning».":"Нічого не розпізнав.")+" Спробуй ще раз, чіткіше.",testMic);
 }
 function dvHalt(){
   if(!DV) return; DV.tok++;
@@ -2653,9 +2852,9 @@ async function dvFinish(complete){
     +'<span class="m '+(i.done&&!i.err?"ok":(i.done?"ok":"no"))+'">'+(i.done?(i.err?"✓ ("+i.err+" пом.)":"✓"):"…")+'</span></div>').join("");
   dvWake(false);
   if(complete){
-    const tok=++DV.tok; DV.stopped=false; DV.paused=false;
+    const d=DV, tok=++d.tok; d.stopped=false; d.paused=false;
     await dvSay("Готово! Вивчено "+learned+" з "+items.filter(i=>!i.review).length+". "+(errs?("Помилок: "+errs+"."):"Без жодної помилки!"),"uk",tok);
-    if(DV) DV.stopped=true;
+    d.stopped=true;
   }
 }
 document.addEventListener("visibilitychange",()=>{
@@ -3607,7 +3806,8 @@ $("#go-list").onclick   =()=>{ listLevel=S.level; renderList(); openOverlay("s-l
 $("#r-close").onclick   =closeOverlay;
 $("#dv-back").onclick=closeOverlay;
 $("#dv-go").onclick=startDrive;
-$("#dv-test").onclick=dvTestSound;
+$("#dv-tspk").onclick=testSpeaker;
+$("#dv-tmic").onclick=testMic;
 $("#dv-stage").onclick=dvPause;
 $("#dv-stop").onclick=dvStop;
 $("#dv-again").onclick=()=>{ DV=null; openDrive(); };
