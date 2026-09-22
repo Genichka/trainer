@@ -1756,7 +1756,7 @@ function renderThemes(){
    APP_VERSION міняється з кожним випуском. Гра періодично питає сайт,
    чи там не новіша версія; якщо так — показує смужку «Оновити»,
    а на спокійних екранах (не посеред тренування) оновлюється сама. */
-const APP_VERSION="2026.09.22 14:40";
+const APP_VERSION="2026.09.22 14:50";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -2624,6 +2624,13 @@ function dvMatchEn(alts,target){
     /* дрібні відхилення в написанні: boot/boat, colour/color */
     if(tn.length>=4 && lev(an,tn)<=1) return true;
     if(tn.length>=8 && lev(an,tn)<=2) return true;
+    /* розпізнавач дописав закінчення: factory → factoring, plan → planning */
+    const words=a.split(" ");
+    for(const wd of words){
+      let k=0; while(k<wd.length&&k<tn.length&&wd[k]===tn[k]) k++;
+      if(tn.length>=4 && wd.length<=tn.length+4 && k>=Math.max(4,Math.ceil(tn.length*0.8))) return true;
+      if(tn.length>=6 && lev(wd,tn)<=2) return true;
+    }
     /* звукова схожість: boat≈bought, cash≈catch — розпізнавач часто пише співзвучне слово */
     const ak=a.split(" ").map(mkey);
     if(tkn && ak.join("")===tkn) return true;
@@ -2709,16 +2716,18 @@ function dvMicDenied(){
 }
 async function dvAsk(it,tok){
   /* за кермом без речень: лише «англ → укр» і «укр → англ» */
-  const type = it.stage===1 ? "en2ua" : "ua2en";
-  const ansLang = type==="en2ua" ? "uk" : "en";
-  const answer = type==="en2ua" ? it.ua : it.en;
+  /* українською не відповідаємо: розпізнавач не знає синонімів (дзвонити/телефонувати).
+     Крок 1 — послухай і повтори, кроки 2–5 — «Як англійською?» */
+  const type = it.stage===1 ? "rep" : "ua2en";
+  const ansLang = "en";
+  const answer = it.en;
   const prompt=async()=>{
     dvMark(null);
     DV.expl=DV.expl||{};
     const first=!DV.expl[type]; DV.expl[type]=1;
-    if(type==="en2ua"){ dvShow("Переклади українською", it.em+" "+it.en, "", "", "");
-      if(first) await dvSay("Завдання: я кажу англійське слово, ти кажеш переклад українською.","uk",tok);
-      await dvSay("Переклади на українську:","uk",tok); await dvSay(it.en,"en",tok,.75); }
+    if(type==="rep"){ dvShow("Послухай і повтори", it.em+" "+it.en, it.ua, "", "");
+      if(first) await dvSay("Завдання: слухай слово і повторюй його англійською.","uk",tok);
+      await dvSay(dvClean(it.ua)+". Повтори:","uk",tok); await dvSay(it.en,"en",tok,.75); }
     else if(type==="ua2en"){ dvShow("Скажи англійською", it.em, it.ua, "", "");
       if(first) await dvSay("Тепер навпаки: я кажу українською, ти кажеш англійське слово.","uk",tok);
       await dvSay("Як англійською: "+dvClean(it.ua)+"?","uk",tok); }
@@ -2776,7 +2785,7 @@ async function dvAsk(it,tok){
     if(it.stage>=DV_DONE){ it.done=true; await dvSay(it.review?"Повторено.":"Вивчено!","uk",tok); }
     else it.next=Date.now()+DV_INT[it.stage];
   } else {
-    it.err++; it.stage=Math.max(1,it.stage-2); it.next=Date.now()+DV_INT[1];
+    it.err++; it.stage=Math.max(1,it.stage-1); it.next=Date.now()+DV_INT[1];
     dvMark(false); dvBeep(false);
     dvShow("Правильно так:", full, tr, heard?("Почув: «"+heard+"»"):"", "bad");
     await dvSay("Правильна відповідь:","uk",tok);
