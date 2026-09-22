@@ -772,6 +772,11 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
   table.cw td{width:29px;height:29px;font-size:14px}
   .kb button{min-width:29px;height:44px}
 }
+/* плитки тренувань без картинок: лише назва, число і кольорова смужка */
+.tr .pic{display:none}
+.tr{border-left:3px solid var(--c,var(--yellow))!important;min-height:86px}
+:root[data-theme="grafana"] .tr{min-height:78px;justify-content:flex-start;gap:2px}
+:root[data-theme="grafana"] .tr .t,:root[data-theme="grafana"] .tr .n{padding-right:0}
 </style>
 <link rel="manifest" href="./manifest.json">
 <meta name="apple-mobile-web-app-title" content="WordHunter">
@@ -1109,7 +1114,13 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
     <button class="btn ghost sm" id="c-known">✅ Знаю добре</button>
   </div>
   <div class="opts" id="c-opts"></div>
-  <div id="c-build"><div class="bslot" id="b-slot"></div><div class="btiles" id="b-tiles"></div></div>
+  <div class="row2" id="c-help" style="display:none;padding-bottom:10px">
+    <button class="btn sm ghost" id="o-hint">💡 Прибрати зайве</button>
+    <button class="btn sm ghost" id="o-skip">Не знаю</button>
+  </div>
+  <div id="c-build"><div class="bslot" id="b-slot"></div><div class="btiles" id="b-tiles"></div>
+    <div class="row2" style="margin-top:12px"><button class="btn sm ghost" id="b-hint">💡 Підказати літеру</button><button class="btn sm ghost" id="b-skip">Не знаю</button></div>
+  </div>
   <div id="c-type" style="display:none;padding-bottom:10px">
     <div class="result-banner" id="c-result">
       <div class="rb-ic" id="c-result-ic"></div>
@@ -1124,6 +1135,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
            readonly inputmode="none" tabindex="-1">
     <div class="kb" id="c-kb"></div>
     <div class="row2" id="c-type-actions" style="margin-top:10px">
+      <button class="btn ghost" id="c-hintl">💡 Літера</button>
       <button class="btn ghost" id="c-skip">Не знаю</button>
       <button class="btn primary" id="c-ok">Перевірити</button>
     </div>
@@ -1801,7 +1813,7 @@ function renderThemes(){
    APP_VERSION міняється з кожним випуском. Гра періодично питає сайт,
    чи там не новіша версія; якщо так — показує смужку «Оновити»,
    а на спокійних екранах (не посеред тренування) оновлюється сама. */
-const APP_VERSION="2026.09.23 03:00";
+const APP_VERSION="2026.09.23 04:00";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -3201,6 +3213,10 @@ document.addEventListener("visibilitychange",()=>{
   else dvWake(true);
 });
 
+/* кольорова смужка зліва замість картинки: за нею впізнаєш плитку */
+const TR_COLOR={pick:"var(--sky)", recall:"var(--lilac)", battle:"var(--coral)", build:"var(--green)",
+  phrase:"var(--rose)", flash:"var(--sky)", type:"var(--yellow)", listen:"var(--green)",
+  due:"var(--yellow)", hard:"var(--coral)", list:"var(--dim)"};
 const TRAININGS=[
   {id:"pick",   t:"Слово → переклад", ex:"pick"},
   {id:"recall", t:"Переклад → слово", ex:"recall"},
@@ -3228,7 +3244,8 @@ function renderTrainings(){
               : tr.id==="due" ? (n?("на сьогодні: "+n):"все повторено")
               : tr.id==="hard" ? (n?(n+" з помилками"):"помилок немає")
               : (n?n+" слів":"немає слів");
-    b.innerHTML = '<div class="t">'+tr.t+'</div><div class="n">'+sub+'</div><span class="pic">'+trIcon(tr.id)+'</span>';
+    b.innerHTML = '<div class="t">'+tr.t+'</div><div class="n">'+sub+'</div>';
+    b.style.setProperty("--c", TR_COLOR[tr.id]||"var(--yellow)");
     b.onclick=()=>{
       if(tr.id==="list"){ listLevel=S.level; renderList(); openOverlay("s-list"); return; }
       if(tr.id==="battle"){ openBattle(); return; }
@@ -3249,12 +3266,14 @@ function tickSprint(){
 }
 
 /* ---- конструктор слів / фраз: тапаємо плитки по порядку; хибна плитка трясеться ---- */
-let bParts=[], bPos=0, bErr=0;
+let bParts=[], bPos=0, bErr=0, bHints=0, bTarget="", bPhrase=false;
 function showBuild(target, isPhrase){
-  $("#c-opts").style.display="none"; $("#c-type").style.display="none";
+  $("#c-opts").style.display="none"; $("#c-help").style.display="none"; $("#c-type").style.display="none";
   $("#c-build").style.display="block";
   bParts = isPhrase ? target.split(" ") : target.replace(/ /g,"").split("");
-  bPos=0; bErr=0;
+  bPos=0; bErr=0; bHints=0; bTarget=target; bPhrase=isPhrase;
+  $("#b-hint").textContent = isPhrase ? "💡 Підказати слово" : "💡 Підказати літеру";
+  $("#b-hint").disabled=false; $("#b-skip").disabled=false;
   const tiles=$("#b-tiles"); tiles.className="btiles"+(isPhrase?" words":""); tiles.innerHTML="";
   shuffle(bParts.map((p,i)=>({p,i}))).forEach(o=>{
     const b=document.createElement("button"); b.className="lt"; b.textContent=o.p;
@@ -3272,6 +3291,21 @@ function drawBuildSlot(target,isPhrase){
   for(const ch of target){ if(k>=bPos) break; if(ch===" "){ out+=" "; continue; } out+=ch; k++; }
   slot.textContent=out;
 }
+/* підказка: сама ставить наступну літеру (або слово), щоб не було глухого кута */
+function buildHint(){
+  if(answered||!bParts.length) return;
+  const need=bParts[bPos];
+  const btn=$$("#b-tiles .lt").find(b=>!b.classList.contains("used") && b.textContent===need);
+  if(!btn) return;
+  bHints++;
+  tapBuild(btn,need,bTarget,bPhrase);
+}
+/* «Не знаю»: показуємо відповідь і йдемо далі */
+function buildGiveUp(){
+  if(answered||!bParts.length) return;
+  $("#b-hint").disabled=true; $("#b-skip").disabled=true;
+  finishBuild(false,bTarget,bPhrase);
+}
 function tapBuild(btn,part,target,isPhrase){
   if(answered) return;
   if(part!==bParts[bPos]){
@@ -3286,11 +3320,14 @@ function tapBuild(btn,part,target,isPhrase){
 }
 function finishBuild(ok,target,isPhrase){
   answered=true;
+  $("#b-hint").disabled=true; $("#b-skip").disabled=true;
+  if(ok && bHints) ok=false;          /* зібрав із підказками — слово ще не вивчене */
   const en=deck[qi][0];
   markAnswer(curLevel.id,en,ok); autoStatus(en,ok);
   if(ok){ score++; vibrate(18); } else requeue(qi);
   const slot=$("#b-slot"); slot.className="bslot "+(ok?"ok":"no");
   slot.textContent=target;
+  if(!ok && bHints) $("#c-hint").textContent="З підказками ("+bHints+") — слово повернеться ще раз";
   $$("#b-tiles .lt").forEach(b=>b.classList.add("used"));
   $("#c-score").textContent=score;
   if(!isPhrase) $("#c-sent").innerHTML=sentHtml(en,true);
@@ -3447,13 +3484,13 @@ function showListen(en,ua,st){
   if(lsnSub==="lphrase"){ $("#c-hint").textContent="Збери речення, яке почув"; return showBuild(lsnText,true); }
   if(lsnSub==="ltype"){
     $("#c-hint").textContent="Напиши слово, яке почув";
-    $("#c-opts").style.display="none"; $("#c-type").style.display="block";
+    $("#c-opts").style.display="none"; $("#c-help").style.display="none"; $("#c-type").style.display="block";
     const inp=$("#c-input"); inp.value=""; inp.className=""; inp.disabled=false;
     $("#c-kb").style.display=""; $("#c-type-actions").style.display="flex";
     $("#c-result").className="result-banner";
     return;
   }
-  $("#c-type").style.display="none"; $("#c-opts").style.display="grid";
+  $("#c-type").style.display="none"; $("#c-opts").style.display="grid"; $("#c-help").style.display="flex"; oHint=false;
   let right, opts;
   if(lsnSub==="lpick"){
     $("#c-hint").textContent="Послухай і обери переклад";
@@ -3464,6 +3501,7 @@ function showListen(en,ua,st){
   }
   const box=$("#c-opts"); box.innerHTML="";
   opts.forEach(o=>{ const b=document.createElement("button"); b.className="opt"; b.textContent=o;
+    if(o===right) b.dataset.right="1";
     b.onclick=()=>answerCard(b,o===right,right); box.appendChild(b); });
 }
 function nextCard(){
@@ -3473,10 +3511,10 @@ function nextCard(){
   saveCardsSession();          // автозбереження: кожна нова картка
   const [en,ua,em]=deck[qi], st=wstate(curLevel.id,en);
   exType=train||exerciseFor(st.b);
-  retype=false; $("#s-cards").classList.remove("retyping"); $("#c-next").style.display=""; $("#c-input").placeholder="напиши англійською";
+  retype=false; typoHinted=false; $("#s-cards").classList.remove("retyping"); $("#c-next").style.display=""; $("#c-input").placeholder="напиши англійською";
   if(!train && typosOf(en).length) exType="type";   // слово з опечаткою тренуємо саме написанням
   dir = (exType==="pick"||exType==="flash"||exType==="sprint") ? "en2ua" : "ua2en";
-  $("#c-build").style.display="none";
+  $("#c-build").style.display="none"; $("#c-help").style.display="none";
   $("#c-count").textContent=(qi+1)+" / "+deck.length;
   $("#c-score").textContent=score;
   $("#c-line").style.width=(qi/deck.length*100)+"%";
@@ -3507,7 +3545,7 @@ function nextCard(){
     const tp=typosOf(en);
     $("#c-hint").innerHTML="Напиши англійською"
       +(tp.length?'<div class="typowarn">⚠ Тут була пастка: ти писав «'+escH(tp[tp.length-1])+'» — уважно</div>':"");
-    $("#c-opts").style.display="none";
+    $("#c-opts").style.display="none"; $("#c-help").style.display="none";
     $("#c-type").style.display="block";
     const inp=$("#c-input");
     inp.value=""; inp.className=""; inp.disabled=false;
@@ -3518,7 +3556,7 @@ function nextCard(){
   }
 
   $("#c-type").style.display="none";
-  $("#c-opts").style.display="grid";
+  $("#c-opts").style.display="grid"; $("#c-help").style.display="flex"; oHint=false;
   $("#c-hint").textContent = exType==="pick" ? "Обери переклад" : "Як це англійською?";
   const idx=dir==="en2ua"?1:0, right=deck[qi][idx];
   const syn=synOf(deck[qi][0]);
@@ -3527,7 +3565,7 @@ function nextCard(){
   const box=$("#c-opts"); box.innerHTML="";
   opts.forEach(o=>{
     const b=document.createElement("button");
-    b.className="opt"; b.textContent=o;
+    b.className="opt"; b.textContent=o; if(o===right) b.dataset.right="1";
     b.onclick=()=>answerCard(b, o===right || (idx===0 && sameWord(o,right)), right);
     box.appendChild(b);
   });
@@ -3693,19 +3731,20 @@ function typoSolved(en){
   if(S.typoOk[k]>=2){ delete S.typos[k]; delete S.typoOk[k]; }
   save();
 }
-let retype=false;
-function showTypedResult(ok,right,typed){
+let retype=false, typoHinted=false;
+function showTypedResult(ok,right,typed,okText){
   const inp=$("#c-input"); inp.disabled=true; inp.className=ok?"ok":"no";
   $("#c-sent").innerHTML=sentHtml(right,true);
   $("#c-kb").style.display="none";
   $("#c-type-actions").style.display="none";
   const rb=$("#c-result");
-  rb.className="result-banner on "+(ok?"ok":"no");
-  $("#c-result-ic").textContent=ok?"✅":"❌";
-  $("#c-result-title").textContent=ok?"Правильно!":"Неправильно";
-  $("#c-result-sub").innerHTML=ok?"":(typoHtml(typed||"",right)
+  const hinted = !ok && okText;      /* написав правильно, але з підказкою */
+  rb.className="result-banner on "+(ok||hinted?"ok":"no");
+  $("#c-result-ic").textContent=ok?"✅":hinted?"💡":"❌";
+  $("#c-result-title").textContent=ok?"Правильно!":hinted?"Правильно, з підказкою":"Неправильно";
+  $("#c-result-sub").innerHTML=(ok||hinted)?(hinted?"Слово повернеться ще раз":""):(typoHtml(typed||"",right)
       +'<div class="retype">✍️ Перепиши слово правильно — і тоді «Далі»</div>');
-  if(!ok){
+  if(!ok && !hinted){
     // «Далі» лише після правильного переписування: так правильне написання запам'ятовується руками
     retype=true; $("#s-cards").classList.add("retyping");
     const inp=$("#c-input"); inp.disabled=false; inp.value=""; inp.className=""; inp.placeholder="перепиши: "+right;
@@ -3732,16 +3771,37 @@ function checkTyped(){
   if(answered) return;
   const right=deck[qi][0], val=normalize($("#c-input").value);
   if(!val){ toast("Напиши слово або тисни «Не знаю»"); return; }
-  const ok = sameWord(val,right);
+  const okText = sameWord(val,right);
+  const ok = okText && !typoHinted;
   answered=true;
   if(ok) typoSolved(right); else rememberTypo(right,val);
   markAnswer(curLevel.id,right,ok); autoStatus(right,ok);
   if(ok){ score++; vibrate(18); }
   else { vibrate([25,60,25]); requeue(qi); }
-  showTypedResult(ok,right,val);
+  showTypedResult(ok,right,val,okText);
+}
+
+/* ---- підказки у вправах з варіантами ----
+   «Прибрати зайве» лишає два варіанти (відповідь уже не рахується вивченою),
+   «Не знаю» показує правильну відповідь і веде далі. */
+let oHint=false;
+function optsHint(){
+  if(answered||oHint) return;
+  const right=$$("#c-opts .opt").find(b=>b.dataset.right==="1");
+  const wrong=shuffle($$("#c-opts .opt").filter(b=>b.dataset.right!=="1"));
+  if(!right||wrong.length<2) return;
+  oHint=true;
+  wrong.slice(0,wrong.length-1).forEach(b=>{ b.disabled=true; b.style.opacity=".25"; });
+  $("#c-hint").textContent="Лишилось два варіанти — слово повернеться ще раз";
+}
+function optsSkip(){
+  if(answered) return;
+  const right=$$("#c-opts .opt").find(b=>b.dataset.right==="1");
+  if(right) answerCard(right,false,right.textContent);
 }
 function answerCard(btn,ok,right){
   if(answered)return; answered=true;
+  if(ok && oHint){ ok=false; }        /* відповів після підказки — слово ще не вивчене */
   markAnswer(curLevel.id,deck[qi][0],ok); autoStatus(deck[qi][0],ok);
   if(ok){ score++; btn.classList.add("ok"); vibrate(18); }
   else{ btn.classList.add("no"); vibrate([25,60,25]); requeue(qi);
@@ -4192,6 +4252,8 @@ $("#r-say").onclick     =()=>{ const t=curText&&(TEXTS[curText.lvId]||[])[curTex
 $("#go-cw").onclick     =()=>startCrossword(getLevel(S.level));
 $("#c-close").onclick   =()=>{ stopSprint(); sprintEnd=0; closeOverlay(); };
 $("#c-prev").onclick    =()=>{ if(qi>0){ qi--; nextCard(); } };
+$("#b-hint").onclick    =buildHint;
+$("#b-skip").onclick    =buildGiveUp;
 $("#w-close").onclick   =()=>{ clearInterval(cwTimer); closeOverlay(); };
 $("#l-close").onclick   =closeOverlay;
 $("#d-close").onclick   =closeOverlay;
@@ -4242,6 +4304,19 @@ $("#i-prev").onclick    =()=>{ if(introI>0){ introI--; showIntro(); } };
 $("#i-close").onclick   =closeOverlay;
 $("#i-say").onclick     =()=>{ const w=introQueue[introI]; if(w) say(w[0]); };
 $("#i-note").onclick    =()=>{ const w=introQueue[introI]; if(w) openNote(curLevel.id,w[0],w[1]); };
+$("#o-hint").onclick    =optsHint;
+$("#o-skip").onclick    =optsSkip;
+$("#c-hintl").onclick   =()=>{        /* підказує наступну літеру слова */
+  if(answered && !retype) return;
+  const right=deck[qi][0], inp=$("#c-input");
+  let v=inp.value;
+  if(normalize(right).indexOf(normalize(v))!==0) v="";       /* набрано не те — починаємо з початку */
+  const next=right.slice(v.length, v.length+1);
+  if(!next) return;
+  inp.value=v+next;
+  typoHinted=true;
+  $("#c-hint").textContent="З підказкою — слово повернеться ще раз";
+};
 $("#c-skip").onclick    =()=>{
   if(answered) return;
   answered=true;
