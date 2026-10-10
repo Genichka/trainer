@@ -753,13 +753,19 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .updbar[hidden]{display:none}
 .updmodal{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px}
 .updmodal[hidden]{display:none}
+.homever{text-align:center;margin:0;padding:10px 0 18px;color:var(--dim);font-size:12.5px;line-height:2}
+.updmsg{display:block;min-height:1.2em;font-size:12.5px}
+.hupd{border:1.5px solid color-mix(in srgb,var(--chalk) 25%,transparent);background:var(--board-lt);color:var(--chalk);
+  font:inherit;font-size:12.5px;font-weight:600;border-radius:12px;padding:4px 10px;cursor:pointer;margin-left:6px}
+.hupd.hot{background:var(--yellow);color:#2a2010;border-color:var(--yellow);animation:hupdPulse 1.6s ease-in-out infinite}
+@keyframes hupdPulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--yellow) 30%,transparent)}}
 .um-box{background:var(--board-lt);color:var(--chalk);border:1.5px solid color-mix(in srgb,var(--chalk) 22%,transparent);
   border-radius:18px;padding:18px 18px 16px;max-width:400px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.4)}
 .um-em{font-size:40px;text-align:center;line-height:1}
 .um-box h2{margin:8px 0 10px;text-align:center;font-size:20px}
-.um-h{font-weight:700;color:var(--dim);font-size:14px}
-.um-box ul{margin:6px 0 10px;padding-left:20px;line-height:1.45}
-.um-cur{font-size:13px;color:var(--dim);margin-bottom:12px}
+.um-h{font-weight:700;color:var(--dim);font-size:14px;text-align:center}
+.um-list{margin:6px 0 10px;line-height:1.45;text-align:left}
+.um-cur{font-size:12.5px;color:var(--dim);margin-bottom:12px;text-align:center}
 .um-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 /* ---- Збери валізу ---- */
 .mt-bag{position:relative;margin:4px auto 10px;width:min(100%,360px);aspect-ratio:2.1/1;border-radius:22px;
@@ -828,6 +834,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
     <button class="skillbig" id="go-skill"><span class="ic">🎯</span>
       <span class="t">Обери свій skill</span><span class="d">слова · тексти · кросворд</span></button>
   </div>
+  <p class="homever"><span id="ver-home"></span> <button class="hupd" id="h-upd">🔄 Оновити</button> <span class="updmsg" id="upd-msg"></span></p>
 </section>
 
 <!-- ===== МЕНЮ SKILL ===== -->
@@ -1278,8 +1285,8 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
   <div class="um-em">🆕</div>
   <h2>Нова версія <span id="um-ver"></span></h2>
   <div class="um-h">Що змінилось:</div>
-  <ul id="um-list"></ul>
-  <div class="um-cur">Зараз у тебе <span id="um-cur"></span>. Слова, прогрес і профілі збережуться.</div>
+  <div class="um-list" id="um-list"></div>
+  <div class="um-cur">Зараз у вас <span id="um-cur"></span>. Слова, прогрес і профілі збережуться.</div>
   <div class="um-btns"><button class="btn primary" id="um-go">🔄 Оновити</button><button class="btn" id="um-later">Пізніше</button></div>
 </div></div>
 
@@ -1794,6 +1801,7 @@ const getLevel=id=>LEVELS.find(l=>l.id===id)||LEVELS[0];
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 let tab="s-home", overlay=null, prevTab="s-skill";
 function showTab(id){
+  if(id==="s-home" && UPD && updAsked!==UPD.version) setTimeout(()=>{ if(tab==="s-home"&&!overlay) askUpdate(); },400);
   if(id==="s-level" && tab!=="s-level") prevTab=tab;
   overlay=null; tab=id;
   $$(".screen").forEach(s=>s.classList.remove("on"));
@@ -1869,19 +1877,23 @@ function renderThemes(){
   });
 }
 /* ==================== версія і оновлення ====================
-   Оновлення - лише з дозволу. Гра тихо читає version.json поруч із собою:
-   {"version": "2026.10.11 01:00", "changes": ["…", "…"]}. Якщо там новіша -
-   на спокійному екрані питає «Оновити / Пізніше» й показує, що змінилось;
-   посеред тренування - лише смужка вгорі. Сама гра не оновлюється:
-   офлайн-кеш (sw.js) віддає збережену версію, доки ти не погодишся.
-   sw.js між версіями НЕ змінювати - інакше браузер поставить новий сам. */
-const APP_VERSION="2026.10.11 01:00";
+   Так само, як у ChildBrain (EnergyUA Junior). Версія - звичайний номер (2.0.0).
+   Під меню на головній: «v3.0.0 🔄 Оновити». Гра тихо читає version.json
+   ({"version": "2.0.1", "changes": ["…"]}) при запуску й раз на пів години.
+   Є новіша - на головній питає «Оновити / Пізніше» з описом змін, а кнопка
+   стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
+   повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
+   версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
+const APP_VERSION="3.0.0";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
+  const v=$("#ver-home"); if(v) v.textContent="v"+APP_VERSION;
 }
-let UPD=null, updChecking=false, updAsked="";
+let UPD=null, updBusy=false, updAsked="";
 const updEsc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const vNum=v=>String(v||"").split(".").map(x=>+x||0);
+function vNewer(a,b){ const x=vNum(a), y=vNum(b); for(let i=0;i<3;i++){ if((x[i]||0)!==(y[i]||0)) return (x[i]||0)>(y[i]||0); } return false; }
 async function fetchRemoteVersion(){
   try{
     const r=await fetch("./version.json?t="+Date.now(),{cache:"no-store"});
@@ -1892,42 +1904,49 @@ async function fetchRemoteVersion(){
   if(!m) throw new Error("no version");
   return {version:m[1], changes:[]};
 }
-function updCalm(){ return !overlay && ["s-home","s-skill","s-learn","s-level","s-cwhome","s-texts","s-stats","s-more"].includes(tab); }
+function updMsg(t){ const e=$("#upd-msg"); if(e) e.textContent=t||""; }
+function updHomeBtn(){
+  const b=$("#h-upd"); if(!b) return;
+  b.textContent = UPD ? ("🆕 Є версія "+UPD.version) : "🔄 Оновити";
+  b.classList.toggle("hot",!!UPD);
+}
+/** silent - фонова перевірка: нічого не пише, якщо оновлень немає. */
 async function checkUpdate(manual){
-  if(updChecking) return;
-  if(location.protocol==="file:"){ if(manual) toast("Перевірка оновлень працює лише на сайті"); return; }
-  if(UPD && manual){ askUpdate(); return; }
-  updChecking=true;
+  const silent=!manual;
+  if(updBusy) return;
+  if(location.protocol==="file:"){ if(manual) updMsg("перевірка працює лише на сайті"); return; }
+  if(!navigator.onLine){ if(manual) updMsg("немає інтернету — спробуйте пізніше"); return; }
+  updBusy=true; const btn=$("#h-upd"); if(btn&&manual) btn.disabled=true;
+  if(manual) updMsg("перевіряю…");
   try{
     const rv=await fetchRemoteVersion();
-    if(rv.version>APP_VERSION){
-      UPD=rv;
-      $("#upd-txt").textContent="Нова версія "+rv.version;
-      $("#updbar").hidden=false;
-      if(manual || (updCalm() && updAsked!==rv.version)) askUpdate();
-    } else if(manual) toast("У тебе найновіша версія");
-  }catch(e){ if(manual) toast("Не вдалося перевірити — немає інтернету?"); }
-  finally{ updChecking=false; }
+    UPD = vNewer(rv.version,APP_VERSION) ? rv : null;
+    updHomeBtn();
+    if(!UPD){ if(manual){ updMsg("у вас найновіша версія ("+APP_VERSION+")"); setTimeout(()=>updMsg(""),4000); } }
+    else { updMsg(""); if(manual || (tab==="s-home" && !overlay && updAsked!==UPD.version)) askUpdate(); }
+  }catch(e){ if(manual) updMsg("не вдалося перевірити"); }
+  updBusy=false; if(btn) btn.disabled=false;
 }
 function askUpdate(){
   if(!UPD) return;
   updAsked=UPD.version;
   $("#um-ver").textContent=UPD.version;
   $("#um-cur").textContent=APP_VERSION;
-  $("#um-list").innerHTML = UPD.changes.length ? UPD.changes.map(c=>"<li>"+updEsc(c)+"</li>").join("") : "<li>Опису змін немає</li>";
+  $("#um-list").innerHTML = UPD.changes.length ? UPD.changes.map(c=>"• "+updEsc(c)).join("<br>") : "опису змін немає.";
   $("#updmodal").hidden=false;
 }
 async function doUpdate(){
   $("#updmodal").hidden=true;
+  updMsg("оновлюю до "+(UPD?UPD.version:"нової версії")+"…");
   try{ save(); }catch(e){}
   try{ localStorage.setItem("slova.updFrom",APP_VERSION); }catch(e){}
   try{ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }catch(e){}
   try{ const rs=await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(r=>r.unregister())); }catch(e){}
-  location.replace(location.pathname+"?v="+encodeURIComponent(UPD?UPD.version:Date.now()));
+  setTimeout(()=>location.replace(location.pathname+"?v="+Date.now()),300);
 }
 (()=>{ // після оновлення - коротко сказати, що вийшло
   let from=""; try{ from=localStorage.getItem("slova.updFrom")||""; localStorage.removeItem("slova.updFrom"); }catch(e){}
-  if(from && from!==APP_VERSION) setTimeout(()=>toast("✅ Оновлено до "+APP_VERSION),900);
+  if(from && from!==APP_VERSION) setTimeout(()=>toast("✅ Оновлено: "+from+" → "+APP_VERSION),900);
 })();
 
 /* ==================== старт і меню ==================== */
@@ -4418,7 +4437,7 @@ $("#c-skip").onclick    =()=>{
 $("#w-hint").onclick    =hintLetter;
 $("#w-check").onclick   =checkCw;
 $("#pf-add").onclick    =()=>openProfileEdit(null);
-$("#m-upd").onclick=()=>checkUpdate(true);
+$("#m-upd").onclick=()=>{ showTab("s-home"); checkUpdate(true); };   // перевірка - на головній, як у ChildBrain
 $("#m-nouns").onclick=()=>{ S.nounsOnly=!S.nounsOnly; save(); renderProfiles(); toast(S.nounsOnly?"Тепер тренуються лише іменники":"Тепер тренуються всі слова"); };
 $("#m-sound").onclick   =()=>{ S.sound=!S.sound; save(); renderProfiles(); toast(S.sound?"Озвучення увімкнено":"Озвучення вимкнено"); };
 $("#m-remind").onclick  =toggleRemind;
@@ -4535,12 +4554,13 @@ $("#mt-done").onclick=()=>{ MT=null; closeOverlay(); };
 $("#mt-back").onclick=()=>{ MT=null; closeOverlay(); };
 window.addEventListener("resize",()=>{ if(MT&&overlay==="s-match") matchLines(); });
 
-$("#upd-go").onclick=askUpdate;
+$("#upd-go").onclick=askUpdate;   // смужка лишилась у розмітці, але більше не показується
+$("#h-upd").onclick=e=>{ e.stopPropagation(); if(UPD) askUpdate(); else checkUpdate(true); };
 $("#um-go").onclick=doUpdate;
 $("#um-later").onclick=()=>{ $("#updmodal").hidden=true; toast("Добре, спитаю наступного разу"); };
 setTimeout(()=>checkUpdate(false),3000);
-setInterval(()=>checkUpdate(false),5*60*1000);
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden) checkUpdate(false); });
+setInterval(()=>checkUpdate(false),30*60*1000);
+
 
 </script>
 <script>
