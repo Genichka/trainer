@@ -815,6 +815,9 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .tr{border-left:3px solid var(--c,var(--yellow))!important;min-height:86px}
 :root[data-theme="grafana"] .tr{min-height:78px;justify-content:flex-start;gap:2px}
 :root[data-theme="grafana"] .tr .t,:root[data-theme="grafana"] .tr .n{padding-right:0}
+.tile.eua{text-decoration:none;color:inherit}
+.tile.eua .em .bolt{width:20px;height:31px;display:block;margin:0 auto}
+.tile.eua .t{font-weight:700;letter-spacing:-.3px}.tile.eua .bw{color:var(--chalk)}.tile.eua .bh{color:var(--yellow)}
 </style>
 <link rel="manifest" href="./manifest.json">
 <meta name="apple-mobile-web-app-title" content="WordHunter">
@@ -1142,6 +1145,8 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
   <input type="file" id="file-in" accept="application/json" style="display:none">
   <button class="tile" id="m-reset"><div class="em">🗑️</div>
     <div><div class="t">Скинути прогрес профілю</div><div class="d" id="reset-st"></div></div></button>
+  <a class="tile eua" href="https://www.youtube.com/@YevhenShchuka" target="_blank" rel="noopener"><div class="em"><svg class="bolt" viewBox="0 0 64 100" aria-hidden="true"> <defs> <linearGradient id="tbf" x1="0" y1="0" x2="0.35" y2="1"> <stop offset="0" stop-color="#ffa21a"/><stop offset=".45" stop-color="#ff8a10"/><stop offset="1" stop-color="#ff5a00"/> </linearGradient> <linearGradient id="tbs" x1="0" y1="0" x2="0" y2="1"> <stop offset="0" stop-color="#ffe23a"/><stop offset="1" stop-color="#ffb800"/> </linearGradient> </defs> <path d="M44 1 L52 5 L37 37 L62 37 L22 99 L15 95 L26 62 L3 62 Z" fill="url(#tbs)"/> <path d="M39 0 L0 58 L24 58 L13 97 L56 33 L30 33 Z" fill="url(#tbf)"/> <path d="M39 0 L30 33 L35 33 L42 3 Z" fill="#ffe680" opacity=".5"/> </svg></div>
+    <div><div class="t"><span class="bw">Energy</span><span class="bh">UA</span></div><div class="d">YouTube-канал автора WordHunter ↗</div></div></a>
   <div class="spacer"></div>
   <div class="sub" style="color:var(--dim);font-size:12.5px;padding-bottom:10px">
     Слів у словнику: <span id="m-total">0</span>. Дані зберігаються лише на цьому пристрої.
@@ -1884,7 +1889,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.0.0";
+const APP_VERSION="3.0.1";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
