@@ -751,6 +751,38 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .updbar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 8px);z-index:30;display:flex;align-items:center;gap:12px;
   background:var(--board-lt);border:1px solid var(--yellow);border-radius:var(--r);padding:9px 10px 9px 14px;font-size:14px;max-width:94%;box-shadow:0 6px 20px rgba(0,0,0,.35)}
 .updbar[hidden]{display:none}
+.updmodal{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.updmodal[hidden]{display:none}
+.um-box{background:var(--board-lt);color:var(--chalk);border:1.5px solid color-mix(in srgb,var(--chalk) 22%,transparent);
+  border-radius:18px;padding:18px 18px 16px;max-width:400px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.um-em{font-size:40px;text-align:center;line-height:1}
+.um-box h2{margin:8px 0 10px;text-align:center;font-size:20px}
+.um-h{font-weight:700;color:var(--dim);font-size:14px}
+.um-box ul{margin:6px 0 10px;padding-left:20px;line-height:1.45}
+.um-cur{font-size:13px;color:var(--dim);margin-bottom:12px}
+.um-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* ---- Збери валізу ---- */
+.mt-bag{position:relative;margin:4px auto 10px;width:min(100%,360px);aspect-ratio:2.1/1;border-radius:22px;
+  background:linear-gradient(180deg,#2c4a6e,#1f3552);border:4px solid #16263b;box-shadow:inset 0 0 0 3px rgba(255,255,255,.06),0 6px 0 rgba(0,0,0,.25);
+  display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;padding:10px 14px}
+.mt-bag::before{content:"";position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:84px;height:18px;
+  border:4px solid #16263b;border-bottom:0;border-radius:12px 12px 0 0}
+.mt-bag i{font-style:normal;font-size:clamp(28px,8vw,42px);opacity:.18;filter:grayscale(1);transition:all .35s}
+.mt-bag i.in{opacity:1;filter:none;transform:scale(1.12)}
+.mt-cols{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:10px 38px}
+.mt-cols svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.mt-cols svg line{stroke:var(--yellow);stroke-width:3;stroke-dasharray:7 6;stroke-linecap:round}
+.mt-w{position:relative;z-index:1;border:0;border-radius:999px;padding:12px 10px;min-height:52px;font:inherit;font-weight:700;
+  font-size:16px;line-height:1.15;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.25);transition:transform .15s,opacity .3s}
+.mt-w.en{background:#1f8f86;color:#fff}
+.mt-w.ua{background:#e2a92a;color:#2a2010}
+.mt-w.sel{outline:3px solid var(--chalk);transform:translateY(-2px)}
+.mt-w.done{opacity:.55;box-shadow:none;cursor:default}
+.mt-w.bad{animation:mtShake .35s}
+@keyframes mtShake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.mt-info{text-align:center;color:var(--dim);font-size:14px;margin:4px 0 10px}
+.mt-res{text-align:center;margin:14px 0 6px;font-size:16px}
+
 .updbar button{border:0;border-radius:var(--r);padding:8px 14px;font:inherit;font-weight:600;background:var(--yellow);color:#111;cursor:pointer}
 :root[data-theme="grafana"] .updbar button{background:#3d71d9;color:#fff}
 .gearbtn{display:flex;align-items:center;justify-content:center;padding:0}
@@ -965,6 +997,22 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
       <div class="bt-btns"><button class="bt-no" id="bt-no">Неправильно</button><button class="bt-yes" id="bt-yes">Правильно</button></div>
     </div>
   </div>
+</section>
+
+<!-- ===== ЗБЕРИ ВАЛІЗУ ===== -->
+<section id="s-match" class="screen">
+  <div class="head"><div style="flex:1"><h1>Збери валізу англійською!</h1>
+    <div class="sub" id="mt-sub">Зʼєднай слова з їхніми перекладами</div></div>
+    <button aria-label="Назад" title="Назад" class="homebtn" id="mt-back"><svg class="bk" viewBox="0 0 96 96" aria-hidden="true"><g fill="none" style="stroke:var(--yellow)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M70 48H28"/><path d="M45 30L27 48L45 66"/></g></svg></button></div>
+  <div class="mt-bag" id="mt-bag"></div>
+  <div class="mt-info" id="mt-info"></div>
+  <div class="mt-cols" id="mt-cols"></div>
+  <div id="mt-end" style="display:none">
+    <div class="mt-res" id="mt-res"></div>
+    <button class="btn primary" id="mt-next">Наступна валіза</button>
+    <button class="btn" id="mt-done" style="margin-top:10px">До тренувань</button>
+  </div>
+  <div class="spacer"></div>
 </section>
 
 <!-- ===== БАТЛ: РЕЗУЛЬТАТИ ===== -->
@@ -1225,7 +1273,15 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="updbar" id="updbar" hidden><span id="upd-txt">Є нова версія</span><button id="upd-go">Оновити</button></div>
+<div class="updbar" id="updbar" hidden><span id="upd-txt">Є нова версія</span><button id="upd-go">Що нового?</button></div>
+<div class="updmodal" id="updmodal" hidden><div class="um-box">
+  <div class="um-em">🆕</div>
+  <h2>Нова версія <span id="um-ver"></span></h2>
+  <div class="um-h">Що змінилось:</div>
+  <ul id="um-list"></ul>
+  <div class="um-cur">Зараз у тебе <span id="um-cur"></span>. Слова, прогрес і профілі збережуться.</div>
+  <div class="um-btns"><button class="btn primary" id="um-go">🔄 Оновити</button><button class="btn" id="um-later">Пізніше</button></div>
+</div></div>
 
 <div class="modal" id="modal-note">
   <div class="box">
@@ -1812,39 +1868,67 @@ function renderThemes(){
     box.appendChild(b);
   });
 }
-/* ==================== версія і автооновлення ====================
-   APP_VERSION міняється з кожним випуском. Гра періодично питає сайт,
-   чи там не новіша версія; якщо так — показує смужку «Оновити»,
-   а на спокійних екранах (не посеред тренування) оновлюється сама. */
-const APP_VERSION="2026.09.23 22:35";
+/* ==================== версія і оновлення ====================
+   Оновлення - лише з дозволу. Гра тихо читає version.json поруч із собою:
+   {"version": "2026.10.11 01:00", "changes": ["…", "…"]}. Якщо там новіша -
+   на спокійному екрані питає «Оновити / Пізніше» й показує, що змінилось;
+   посеред тренування - лише смужка вгорі. Сама гра не оновлюється:
+   офлайн-кеш (sw.js) віддає збережену версію, доки ти не погодишся.
+   sw.js між версіями НЕ змінювати - інакше браузер поставить новий сам. */
+const APP_VERSION="2026.10.11 01:00";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
 }
-let updFound=null, updChecking=false;
-async function checkUpdate(manual){
-  if(updChecking) return; updChecking=true;
+let UPD=null, updChecking=false, updAsked="";
+const updEsc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+async function fetchRemoteVersion(){
   try{
-    if(location.protocol==="file:"){ if(manual) toast("Перевірка оновлень працює лише на сайті"); return; }
-    const r=await fetch("./index.html?nocache="+Date.now(),{cache:"no-store"});
-    const txt=await r.text();
-    const m=txt.match(/const APP_VERSION="([^"]+)"/);
-    if(m && m[1]!==APP_VERSION){
-      updFound=m[1];
-      try{ const reg=await navigator.serviceWorker.getRegistration(); reg&&reg.update(); }catch(e){}
-      const busy = !!(overlay && overlay!=="s-drive") || (typeof DV!=="undefined" && DV && !DV.stopped);
-      if(!busy && (tab==="s-home"||tab==="s-skill") && !manual){ doUpdate(); return; }
-      $("#upd-txt").textContent="Нова версія "+updFound;
+    const r=await fetch("./version.json?t="+Date.now(),{cache:"no-store"});
+    if(r.ok){ const j=await r.json(); if(j&&j.version) return {version:String(j.version), changes:Array.isArray(j.changes)?j.changes.slice(0,8):[]}; }
+  }catch(e){}
+  const r=await fetch("./index.html?t="+Date.now(),{cache:"no-store"});
+  const m=(await r.text()).match(/const APP_VERSION="([^"]+)"/);
+  if(!m) throw new Error("no version");
+  return {version:m[1], changes:[]};
+}
+function updCalm(){ return !overlay && ["s-home","s-skill","s-learn","s-level","s-cwhome","s-texts","s-stats","s-more"].includes(tab); }
+async function checkUpdate(manual){
+  if(updChecking) return;
+  if(location.protocol==="file:"){ if(manual) toast("Перевірка оновлень працює лише на сайті"); return; }
+  if(UPD && manual){ askUpdate(); return; }
+  updChecking=true;
+  try{
+    const rv=await fetchRemoteVersion();
+    if(rv.version>APP_VERSION){
+      UPD=rv;
+      $("#upd-txt").textContent="Нова версія "+rv.version;
       $("#updbar").hidden=false;
+      if(manual || (updCalm() && updAsked!==rv.version)) askUpdate();
     } else if(manual) toast("У тебе найновіша версія");
   }catch(e){ if(manual) toast("Не вдалося перевірити — немає інтернету?"); }
   finally{ updChecking=false; }
 }
-async function doUpdate(){
-  try{ save(); }catch(e){}
-  try{ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }catch(e){}
-  location.replace(location.pathname+"?v="+encodeURIComponent(updFound||Date.now()));
+function askUpdate(){
+  if(!UPD) return;
+  updAsked=UPD.version;
+  $("#um-ver").textContent=UPD.version;
+  $("#um-cur").textContent=APP_VERSION;
+  $("#um-list").innerHTML = UPD.changes.length ? UPD.changes.map(c=>"<li>"+updEsc(c)+"</li>").join("") : "<li>Опису змін немає</li>";
+  $("#updmodal").hidden=false;
 }
+async function doUpdate(){
+  $("#updmodal").hidden=true;
+  try{ save(); }catch(e){}
+  try{ localStorage.setItem("slova.updFrom",APP_VERSION); }catch(e){}
+  try{ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }catch(e){}
+  try{ const rs=await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map(r=>r.unregister())); }catch(e){}
+  location.replace(location.pathname+"?v="+encodeURIComponent(UPD?UPD.version:Date.now()));
+}
+(()=>{ // після оновлення - коротко сказати, що вийшло
+  let from=""; try{ from=localStorage.getItem("slova.updFrom")||""; localStorage.removeItem("slova.updFrom"); }catch(e){}
+  if(from && from!==APP_VERSION) setTimeout(()=>toast("✅ Оновлено до "+APP_VERSION),900);
+})();
 
 /* ==================== старт і меню ==================== */
 function renderHome(){
@@ -3219,11 +3303,12 @@ document.addEventListener("visibilitychange",()=>{
 /* кольорова смужка зліва замість картинки: за нею впізнаєш плитку */
 const TR_COLOR={pick:"var(--sky)", recall:"var(--lilac)", battle:"var(--coral)", build:"var(--green)",
   phrase:"var(--rose)", flash:"var(--sky)", type:"var(--yellow)", listen:"var(--green)",
-  due:"var(--yellow)", hard:"var(--coral)", list:"var(--dim)"};
+  due:"var(--yellow)", hard:"var(--coral)", list:"var(--dim)", match:"var(--green)"};
 const TRAININGS=[
   {id:"pick",   t:"Слово → переклад", ex:"pick"},
   {id:"recall", t:"Переклад → слово", ex:"recall"},
   {id:"battle", t:"Батл слів"},
+  {id:"match",  t:"Збери валізу"},
   {id:"build",  t:"Конструктор слів", ex:"build"},
   {id:"phrase", t:"Конструктор фраз", ex:"phrase"},
   {id:"flash",  t:"Картки слів",      ex:"flash"},
@@ -3237,12 +3322,13 @@ function renderTrainings(){
   const lv=getLevel(S.level), s=lvStats(lv);
   const withSent=LW(lv).filter(w=>sentOf(w[0])).length;
   const cnt={sprint:s.total, build:s.total, pick:s.total, recall:s.total, flash:s.total, type:s.total,
-             due:s.due, phrase:withSent, listen:s.total, hard:s.hard, list:s.total, battle:s.total};
+             due:s.due, phrase:withSent, listen:s.total, hard:s.hard, list:s.total, battle:s.total, match:s.total};
   const box=$("#trgrid"); box.innerHTML="";
   TRAININGS.forEach(tr=>{
     const n=cnt[tr.id]||0;
     const b=document.createElement("button"); b.className="tr";
     const sub = tr.id==="battle" ? ("рекорд "+(btState().best||0))
+              : tr.id==="match" ? "зʼєднай слово з перекладом"
               : tr.id==="drive" ? "голосом, без екрана"
               : tr.id==="due" ? (n?("на сьогодні: "+n):"все повторено")
               : tr.id==="hard" ? (n?(n+" з помилками"):"помилок немає")
@@ -3252,6 +3338,7 @@ function renderTrainings(){
     b.onclick=()=>{
       if(tr.id==="list"){ listLevel=S.level; renderList(); openOverlay("s-list"); return; }
       if(tr.id==="battle"){ openBattle(); return; }
+      if(tr.id==="match"){ openMatch(); return; }
       if(tr.id==="drive"){ openDrive(); return; }
       if(!n){ toast(tr.id==="due"?"На сьогодні все повторено":"Поки немає слів для цього тренування"); return; }
       startCards(lv, tr.kind||"mix", tr.ex||null);
@@ -4377,7 +4464,80 @@ applyTheme(ALL.theme);
 showTab("s-home");
 checkRemind();
 renderVersion();
-$("#upd-go").onclick=doUpdate;
+
+/* ==================== Збери валізу ====================
+   П'ять слів рівня: зліва англійською, справа переклад, перемішані.
+   Торкнись слова й потім його перекладу (або навпаки) - з'являється
+   пунктирна лінія, а річ «падає» у валізу. Помилка - кнопка трясеться,
+   слово йде в «роботу над помилками». Перша спроба без помилки = «знаю»
+   (так само, як в інших тренуваннях: markAnswer). */
+const MT_N=5;
+let MT=null;
+function openMatch(){ MT={lv:getLevel(S.level), round:0, okAll:0, errAll:0}; matchRound(); openOverlay("s-match"); }
+function matchRound(){
+  const lv=MT.lv, deck=pickDeck(lv,"mix").slice(0,MT_N);
+  if(deck.length<2){ toast("Поки замало слів для валізи"); closeOverlay(); return; }
+  Object.assign(MT,{deck, sel:null, done:0, err:{}, lines:[], round:MT.round+1});
+  $("#mt-bag").innerHTML=deck.map(w=>'<i data-en="'+escAttr(w[0])+'">'+(w[2]||"📦")+'</i>').join("");
+  const left=shuffle(deck), right=shuffle(deck);
+  let html='<svg id="mt-svg"></svg>';
+  for(let i=0;i<deck.length;i++){
+    html+='<button class="mt-w en" data-en="'+escAttr(left[i][0])+'">'+left[i][0]+'</button>';
+    html+='<button class="mt-w ua" data-en="'+escAttr(right[i][0])+'">'+right[i][1]+'</button>';
+  }
+  $("#mt-cols").innerHTML=html; $("#mt-cols").style.display="grid";
+  $("#mt-end").style.display="none";
+  $("#mt-info").textContent="Валіза "+MT.round+" · рівень "+lv.code+" · торкнись слова, потім переклад";
+}
+function matchLines(){
+  const box=$("#mt-cols"), svg=$("#mt-svg"); if(!box||!svg) return;
+  const r0=box.getBoundingClientRect();
+  svg.innerHTML=MT.lines.map(en=>{
+    const a=box.querySelector('.mt-w.en[data-en="'+CSS.escape(en)+'"]').getBoundingClientRect();
+    const b=box.querySelector('.mt-w.ua[data-en="'+CSS.escape(en)+'"]').getBoundingClientRect();
+    return '<line x1="'+(a.right-r0.left-6)+'" y1="'+(a.top+a.height/2-r0.top)+'" x2="'+(b.left-r0.left+6)+'" y2="'+(b.top+b.height/2-r0.top)+'"/>';
+  }).join("");
+}
+function matchTap(btn){
+  if(!MT||btn.classList.contains("done")) return;
+  const side=btn.classList.contains("en")?"en":"ua";
+  if(side==="en") say(btn.dataset.en);
+  if(!MT.sel || MT.sel.side===side){
+    if(MT.sel) MT.sel.btn.classList.remove("sel");
+    MT.sel={btn,side}; btn.classList.add("sel"); return;
+  }
+  const a=MT.sel.btn, en=a.dataset.en; a.classList.remove("sel"); MT.sel=null;
+  const enOf=side==="en"?btn.dataset.en:en, other=side==="en"?a:btn, mine=side==="en"?btn:a;
+  if(btn.dataset.en===en){
+    a.classList.add("done"); btn.classList.add("done");
+    MT.lines.push(en); matchLines();
+    const it=$('#mt-bag i[data-en="'+CSS.escape(en)+'"]'); if(it) it.classList.add("in");
+    if(!MT.err[en]){ markAnswer(MT.lv,en,true); MT.okAll++; }
+    vibrate(15);
+    if(++MT.done===MT.deck.length) matchFinish();
+  } else {
+    // помилка: обидва слова - у «роботу над помилками», один раз за раунд
+    [mine.dataset.en, other.dataset.en].forEach(x=>{ if(!MT.err[x]){ MT.err[x]=1; markAnswer(MT.lv,x,false); MT.errAll++; } });
+    [a,btn].forEach(x=>{ x.classList.remove("bad"); void x.offsetWidth; x.classList.add("bad"); });
+    vibrate([40,40,40]);
+  }
+  void enOf;
+}
+function matchFinish(){
+  const errs=Object.keys(MT.err).length;
+  $("#mt-res").innerHTML = errs ? ("Валізу зібрано! 🧳<br>Без помилок: <b>"+(MT.deck.length-errs)+"</b> з "+MT.deck.length)
+                                : "Валізу зібрано без жодної помилки! 🧳✨";
+  setTimeout(()=>{ $("#mt-end").style.display="block"; },500);
+}
+$("#mt-cols").addEventListener("click",e=>{ const b=e.target.closest(".mt-w"); if(b) matchTap(b); });
+$("#mt-next").onclick=matchRound;
+$("#mt-done").onclick=()=>{ MT=null; closeOverlay(); };
+$("#mt-back").onclick=()=>{ MT=null; closeOverlay(); };
+window.addEventListener("resize",()=>{ if(MT&&overlay==="s-match") matchLines(); });
+
+$("#upd-go").onclick=askUpdate;
+$("#um-go").onclick=doUpdate;
+$("#um-later").onclick=()=>{ $("#updmodal").hidden=true; toast("Добре, спитаю наступного разу"); };
 setTimeout(()=>checkUpdate(false),3000);
 setInterval(()=>checkUpdate(false),5*60*1000);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) checkUpdate(false); });

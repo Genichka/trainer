@@ -1,39 +1,28 @@
-const CACHE_NAME = "slova-pwa-v23";
+/* WordHunter - офлайн-оболонка.
+   Цей файл між версіями НЕ змінюється: інакше браузер сам поставить новий
+   service worker і гра оновиться без дозволу. Нову версію ставить сама гра
+   після «🔄 Оновити»: чистить кеш, знімає service worker і перезавантажується. */
+const CACHE = "wordhunter";
+const APP_FILES = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const fresh = u => new Request(u, { cache: "reload" });
 
-const APP_FILES = [
-  "./",
-  "./index.html",
-  "./manifest.json"
-];
-
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES))
-  );
-  self.skipWaiting();
+self.addEventListener("install", e => {
+  e.waitUntil(caches.open(CACHE).then(c => Promise.all(APP_FILES.map(u => c.add(fresh(u)).catch(() => {})))).then(() => self.skipWaiting()));
 });
-
-self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
-    )
-  );
-  self.clients.claim();
+self.addEventListener("activate", e => {
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-
-self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
-
-  // network-first: завжди тягнемо свіжий файл, якщо є мережа;
-  // кеш — лише резерв на випадок офлайну.
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-        return response;
-      })
-      .catch(() => caches.match(event.request).then(cached => cached || caches.match("./index.html")))
-  );
+self.addEventListener("fetch", e => {
+  const req = e.request;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;            // перекладач, озвучка - як є
+  if (url.pathname.endsWith("/version.json") || url.searchParams.has("t")) return;   // перевірка оновлень - лише мережа
+  // спершу збережене (так нова версія не підміняє стару сама), інакше мережа
+  e.respondWith(caches.open(CACHE).then(async c => {
+    const hit = await c.match(req, { ignoreSearch: true }) || (req.mode === "navigate" ? await c.match("./index.html") : null);
+    if (hit) return hit;
+    try { const res = await fetch(req); if (res && res.ok) c.put(req, res.clone()); return res; }
+    catch (err) { return new Response("", { status: 504, statusText: "offline" }); }
+  }));
 });
