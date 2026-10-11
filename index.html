@@ -46,7 +46,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.05;z
   border-radius:12px;border:1.5px solid color-mix(in srgb,var(--chalk) 30%,transparent);background:var(--board-lt);
   color:var(--chalk);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;white-space:nowrap}
 .exitbtn:active,.homebtn:active{background:color-mix(in srgb,var(--chalk) 14%,transparent)}
-.exitbtn .ex-ic,.homebtn .ex-ic{font-size:18px;line-height:1}
 @media (max-width:360px){ .exitbtn,.homebtn{padding:0 11px;font-size:13.5px} }
 
 /* аватар профілю */
@@ -285,8 +284,6 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .mnem{color:var(--lilac);font-size:14px;margin-top:10px;max-width:30ch}
 .ring{width:58px;height:58px;flex:none}
 .ring text{fill:var(--chalk);font-size:15px;font-weight:700;text-anchor:middle}
-.goalrow{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;
-  border:1.5px solid color-mix(in srgb,var(--chalk) 20%,transparent);background:var(--board-lt);margin-bottom:12px}
 .toast{position:fixed;left:50%;bottom:calc(var(--nav) + 18px);transform:translateX(-50%);z-index:9;
   background:#0a1c17;border:1.5px solid color-mix(in srgb,var(--chalk) 25%,transparent);padding:11px 18px;border-radius:12px;
   font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%;text-align:center}
@@ -308,14 +305,12 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 #s-learn .head{padding:4px 0 2px}
 #s-learn .head h1{font-size:20px}
 #s-learn .ava{width:36px;height:36px;font-size:18px}
-#s-learn .desktop{gap:10px 6px;padding:4px 2px 10px}
 #s-learn .dtile{font-size:11.5px;gap:5px}
 #s-learn .dtile .ic{width:46px;height:46px;border-radius:14px;font-size:22px}
 #s-learn .cards4{gap:8px;margin:0 0 8px}
 #s-learn .kpi{padding:9px 11px}
 #s-learn .kpi .v{font-size:21px}
 #s-learn .kpi .l{font-size:11.5px}
-#s-learn .goalrow{padding:9px 12px;gap:11px;margin-bottom:8px}
 #s-learn .ring{width:46px;height:46px}
 #s-learn .lvmini{padding:2px 2px 9px}
 #s-learn .tile{padding:11px 13px;gap:11px;margin-bottom:7px}
@@ -581,7 +576,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .br-row .fl{font-size:22px}
 .br-row .rt{width:74px;text-align:right;font-size:19px}
 .br-row .rt sup{font-size:11px;font-weight:700;margin-left:1px}
-.br-row .rt sup.up{color:#1f9d57}.br-row .rt sup.dn{color:#d23b2e}
+.br-row .rt sup.up{color:#1f9d57}
 .br-row.me{color:#1f9d57;font-weight:700}
 .br-sum{text-align:center;color:var(--dim);font-size:14px;margin-bottom:14px}
 .br-btn{width:100%;height:52px;border:0;border-radius:8px;font:inherit;font-size:16px;font-weight:800;letter-spacing:.5px;
@@ -604,7 +599,6 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .dict .dl{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .dict .dl span{border-left:4px solid var(--c);background:rgba(0,0,0,.18);border-radius:8px;padding:4px 9px;font-size:13px}
 .dict .dl b{margin-right:5px}
-.subsect{color:var(--dim);font-weight:700;font-size:13.5px;margin:4px 2px 6px}
 .lvpick .st.lvdesc{color:var(--c);font-weight:600;opacity:.95}
 
 /* ===== теми оформлення (перемикаються в Профілі) ===== */
@@ -818,6 +812,10 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .tile.eua{text-decoration:none;color:inherit}
 .tile.eua .em .bolt{width:20px;height:31px;display:block;margin:0 auto}
 .tile.eua .t{font-weight:700;letter-spacing:-.3px}.tile.eua .bw{color:var(--chalk)}.tile.eua .bh{color:var(--yellow)}
+.chip{min-height:44px;display:inline-flex;align-items:center}
+.hupd{min-height:40px}
+#s-list .topbar{display:flex;align-items:center;gap:10px}
+#s-list .topbar #l-close{order:2;margin-left:auto}
 </style>
 <link rel="manifest" href="./manifest.json">
 <meta name="apple-mobile-web-app-title" content="WordHunter">
@@ -1889,7 +1887,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.0.1";
+const APP_VERSION="3.0.2";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -2500,7 +2498,7 @@ function closeBattle(){ if(BT){ clearInterval(BT.timer); BT.end=0; } showTab("s-
    build (конструктор слів), phrase (конструктор фраз), flash (картки),
    sprint (спринт: вірно/невірно на час; зараз замінений батлом). */
 const TR_ICONS={"battle":'<path d="M32 22h32v14a16 16 0 0 1-32 0z"/><path d="M32 28H22a8 8 0 0 0 10 12M64 28h10a8 8 0 0 1-10 12"/><path d="M48 52v10M36 72h24M40 62h16v10H40z"/>',"build":'<rect x="12" y="34" width="22" height="26" rx="5" stroke-width="5"/><rect x="37" y="34" width="22" height="26" rx="5" stroke-width="5"/><rect x="62" y="34" width="22" height="26" rx="5" stroke-width="5"/><text x="23" y="53" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">A</text><text x="48" y="53" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">B</text><text x="73" y="53" text-anchor="middle" font-size="17" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">C</text>',"phrase":'<rect x="16" y="26" width="30" height="14" rx="5"/><rect x="52" y="26" width="28" height="14" rx="5"/><rect x="16" y="50" width="20" height="14" rx="5"/><rect x="42" y="50" width="38" height="14" rx="5"/>',"pick":'<text x="48" y="40" text-anchor="middle" font-size="22" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">EN</text><path d="M48 48v18M40 58l8 8 8-8"/><text x="48" y="88" text-anchor="middle" font-size="15" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">UA</text>',"recall":'<text x="48" y="40" text-anchor="middle" font-size="22" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">UA</text><path d="M48 48v18M40 58l8 8 8-8"/><text x="48" y="88" text-anchor="middle" font-size="15" font-weight="800" style="fill:var(--yellow)" stroke="none" font-family="Arial,sans-serif">EN</text>',"flash":'<rect x="30" y="18" width="36" height="50" rx="6"/><path d="M24 30v42a6 6 0 0 0 6 6h30"/><path d="M40 38h16M40 48h10"/>',"type":'<rect x="14" y="28" width="68" height="40" rx="7"/><path d="M26 40h0M38 40h0M50 40h0M62 40h0M70 40h0M26 52h0M38 52h0M50 52h0M62 52h0M70 52h0M32 60h32"/>',"due":'<path d="M27 44A21 21 0 0 1 64 32"/><path d="M66 20V33H53"/><path d="M69 52A21 21 0 0 1 32 64"/><path d="M30 76V63H43"/>',"hard":'<circle cx="48" cy="48" r="28"/><circle cx="48" cy="48" r="16"/><circle cx="48" cy="48" r="4"/>',"drive":'<circle cx="48" cy="48" r="30"/><circle cx="48" cy="48" r="7"/><path d="M19 42q29-10 58 0M48 55v23"/>',"listen":'<path d="M20 60V48a28 28 0 0 1 56 0v12"/><rect x="14" y="56" width="16" height="24" rx="6"/><rect x="66" y="56" width="16" height="24" rx="6"/>',"list":'<path d="M36 30h40M36 48h40M36 66h40"/><path d="M22 30h0M22 48h0M22 66h0"/>'};
-function trIcon(id){ return '<svg viewBox="0 0 96 96" aria-hidden="true"><rect x="2" y="2" width="92" height="92" rx="24" style="fill:var(--board-lt)"/><g fill="none" style="stroke:var(--yellow)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">'+(TR_ICONS[id]||'')+'</g></svg>'; }
+
 /* ==================== ПЕРЕКЛАДАЧ (онлайн) ====================
    Переклад через безкоштовні сервіси (Google gtx, запасний — MyMemory).
    Потрібен інтернет. Ввід — текстом або голосом (мікрофон телефона). */
@@ -2708,33 +2706,6 @@ function renderDriveSetup(){
 try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged=()=>{ if(overlay==="s-drive" && !DV) renderDriveSetup(); }; }catch(e){}
 
 
-/* Перевірка звуку й мікрофона: показує, що саме не працює на цьому телефоні */
-function dvTestSound(){
-  const out=$("#dv-diag"), lines=[];
-  const show=()=>{ out.innerHTML=lines.join("<br>"); };
-  if(!window.speechSynthesis){ lines.push("❌ Цей браузер не вміє озвучувати текст. Відкрий гру в Google Chrome (не у вбудованому переглядачі файлів чи месенджера)."); return show(); }
-  let vs=[]; try{ vs=speechSynthesis.getVoices(); }catch(e){}
-  const en=dvVoice("en"), uk=dvVoice("uk");
-  lines.push("Голосів у телефоні: "+vs.length+(vs.length?"":" (ще завантажуються або не встановлені)"));
-  lines.push((en?"✅":"⚠️")+" Англійський голос: "+(en?en.name:"не знайдено"));
-  lines.push((uk?"✅":"⚠️")+" Український голос: "+(uk?uk.name:"не знайдено — Налаштування → Мова → Синтез мовлення → Google → українська"));
-  lines.push("🔊 Зараз мають прозвучати дві фрази…"); show();
-  try{ speechSynthesis.cancel(); if(speechSynthesis.paused) speechSynthesis.resume(); }catch(e){}
-  let started=0;
-  const mk=(t,lang)=>{ const u=new SpeechSynthesisUtterance(t); u.lang=lang==="uk"?"uk-UA":"en-US";
-    const v=dvVoice(lang); if(v) u.voice=v; u.onstart=()=>{ started++; }; return u; };
-  const u1=mk("Hello! This is a sound test.","en"), u2=mk("Привіт! Це перевірка звуку.","uk");
-  window.__dvT=[u1,u2];
-  try{ speechSynthesis.speak(u1); speechSynthesis.speak(u2); }catch(e){}
-  setTimeout(()=>{
-    lines.pop();
-    if(started) lines.push("✅ Голос запустився ("+started+" з 2). Якщо нічого не чути — додай гучність медіа (кнопкою гучності під час фрази) і вимкни беззвучний режим.");
-    else lines.push("❌ Голос не запустився. Перевір: гра відкрита саме в Chrome; оновлено «Синтез мовлення Google» у Play Market; гучність медіа не на нулі.");
-    if(DV_REC) lines.push("🎤 Розпізнавання мовлення: є (при першому старті Chrome попросить дозвіл на мікрофон)");
-    else lines.push("⚠️ Розпізнавання мовлення в цьому браузері недоступне — працюватиме режим «Лише слухаю».");
-    show();
-  },5000);
-}
 function dvPickWords(list,n){
   const fresh=[], learning=[], rest=[];
   shuffle(list).forEach(w=>{
@@ -4109,13 +4080,7 @@ function selectCell(r,c){
 /* ---- ввід через власну клавіатуру ----
    Системна клавіатура телефона закриває половину екрана, тому весь ввід
    у кросворді йде лише через клавіатуру гри (завжди видима під сіткою). */
-function moveSel(key){
-  if(!sel) return;
-  const d = key==="ArrowRight"?[0,1] : key==="ArrowLeft"?[0,-1] : key==="ArrowUp"?[-1,0] : [1,0];
-  const r=sel[0]+d[0], c=sel[1]+d[1];
-  if(r<0||c<0||r>=grid.length||c>=grid[0].length||!grid[r][c]) return;
-  selectCell(r,c);
-}
+
 function showClue(){
   if(!selWord) return; const p=selWord;
   const s=sentOf(p.en);
