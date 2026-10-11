@@ -1887,7 +1887,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.0.2";
+const APP_VERSION="3.0.3";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -2591,22 +2591,55 @@ function trVizSet(on){
   if(on) trVizT=setInterval(()=>{ const b=v.children; for(let i=0;i<b.length;i++) b[i].style.height=(15+Math.random()*80)+"%"; },100);
   else for(const b of v.children) b.style.height="6%";
 }
+/* Мікрофон перекладача. Розпізнавання Chrome у режимі «одна фраза» на телефоні
+   обриває запис на першій же паузі - більше ~10 слів не виходило. Тому слухаємо
+   шматками: щойно Chrome закінчив шматок, одразу починаємо наступний і дописуємо
+   текст. Зупиняється, коли натиснеш «⏹ Стоп» або помовчиш 8 с (і не довше 3 хв). */
+const TR_SILENCE = 8000, TR_MAX = 180000;
+let TRM = null;
 function trMic(){
-  if(trRec){ try{ trRec.stop(); }catch(e){} return; }
+  if(TRM){ TRM.on=false; try{ TRM.rec && TRM.rec.stop(); }catch(e){} return; }   // «⏹ Стоп»
   if(!DV_REC){ toast("Цей браузер не розпізнає мовлення — відкрий гру в Chrome"); return; }
   try{ dvAudio=dvAudio||new (window.AudioContext||window.webkitAudioContext)(); dvAudio.resume&&dvAudio.resume(); }catch(e){}
-  const r=new DV_REC(); trRec=r;
+  TRM={ on:true, segs:[], t0:Date.now(), last:Date.now(), rec:null, first:true };   // новий запис - новий текст
+  trRec=TRM;
+  trMicSession();
+}
+function trMicFinish(){
+  const m=TRM; if(!m) return;
+  TRM=null; trRec=null; trVizSet(false);
+  $("#tr-mic").textContent="🎤 Говорити"; $("#tr-mic").classList.remove("primary");
+  dvTickEnd();
+  const txt=m.segs.join(" ").replace(/\s+/g," ").trim();
+  $("#tr-in").value=txt;
+  if(txt) trRun();
+}
+function trMicSession(){
+  const m=TRM; if(!m) return;
+  const r=new DV_REC(); m.rec=r;
   r.lang=trFrom().loc; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
-  let fin="";
-  const done=()=>{ trRec=null; trVizSet(false); $("#tr-mic").textContent="🎤 Говорити"; $("#tr-mic").classList.remove("primary"); };
-  r.onstart=()=>{ dvTick2(); trVizSet(true); $("#tr-mic").textContent="⏹ Стоп"; $("#tr-mic").classList.add("primary"); };
-  r.onresult=e=>{ let itm="";
+  let fin="", itm="", fatal=false;
+  const show=()=>{ $("#tr-in").value=[...m.segs, (fin+" "+itm).trim()].join(" ").replace(/\s+/g," ").trim(); };
+  r.onstart=()=>{
+    if(m.first){ m.first=false; dvTick2(); trVizSet(true); $("#tr-mic").textContent="⏹ Стоп"; $("#tr-mic").classList.add("primary"); }
+  };
+  r.onresult=e=>{ itm="";
     for(let k=e.resultIndex||0;k<e.results.length;k++){ const rr=e.results[k];
-      if(rr.isFinal) fin+=rr[0].transcript; else itm+=rr[0].transcript; }
-    $("#tr-in").value=(fin+itm).trim(); };
-  r.onerror=e=>{ if(e.error==="not-allowed") toast("Дозволь мікрофон для сайту"); else if(e.error==="network") toast("Розпізнавання потребує інтернету"); };
-  r.onend=()=>{ dvTickEnd(); done(); if($("#tr-in").value.trim()) trRun(); };
-  try{ r.start(); }catch(e){ done(); }
+      if(rr.isFinal) fin+=" "+rr[0].transcript; else itm+=rr[0].transcript; }
+    m.last=Date.now(); show(); };
+  r.onerror=e=>{
+    if(e.error==="not-allowed"||e.error==="service-not-allowed"){ fatal=true; toast("Дозволь мікрофон для сайту"); }
+    else if(e.error==="network"){ fatal=true; toast("Розпізнавання потребує інтернету"); }
+  };
+  r.onend=()=>{
+    if(TRM!==m) return;
+    const part=(fin+" "+itm).trim(); if(part) m.segs.push(part);   // недоговорене теж зберігаємо
+    if(typeof tab!=="undefined" && tab!=="s-tr") m.on=false;       // пішов з перекладача - мікрофон вимикаємо
+    const now=Date.now();
+    if(m.on && !fatal && now-m.last<TR_SILENCE && now-m.t0<TR_MAX) setTimeout(()=>{ if(TRM===m) trMicSession(); },120);
+    else trMicFinish();
+  };
+  try{ r.start(); }catch(e){ trMicFinish(); }
 }
 
 /* ==================== ЗА КЕРМОМ: голосове тренування ====================
