@@ -1887,7 +1887,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.0.3";
+const APP_VERSION="3.0.4";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -2601,7 +2601,7 @@ function trMic(){
   if(TRM){ TRM.on=false; try{ TRM.rec && TRM.rec.stop(); }catch(e){} return; }   // «⏹ Стоп»
   if(!DV_REC){ toast("Цей браузер не розпізнає мовлення — відкрий гру в Chrome"); return; }
   try{ dvAudio=dvAudio||new (window.AudioContext||window.webkitAudioContext)(); dvAudio.resume&&dvAudio.resume(); }catch(e){}
-  TRM={ on:true, segs:[], t0:Date.now(), last:Date.now(), rec:null, first:true };   // новий запис - новий текст
+  TRM={ on:true, segs:[], t0:Date.now(), last:Date.now(), rec:null, first:true, netErr:0 };   // новий запис - новий текст
   trRec=TRM;
   trMicSession();
 }
@@ -2618,7 +2618,7 @@ function trMicSession(){
   const m=TRM; if(!m) return;
   const r=new DV_REC(); m.rec=r;
   r.lang=trFrom().loc; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
-  let fin="", itm="", fatal=false;
+  let fin="", itm="", fatal=false, got=false;
   const show=()=>{ $("#tr-in").value=[...m.segs, (fin+" "+itm).trim()].join(" ").replace(/\s+/g," ").trim(); };
   r.onstart=()=>{
     if(m.first){ m.first=false; dvTick2(); trVizSet(true); $("#tr-mic").textContent="⏹ Стоп"; $("#tr-mic").classList.add("primary"); }
@@ -2626,20 +2626,31 @@ function trMicSession(){
   r.onresult=e=>{ itm="";
     for(let k=e.resultIndex||0;k<e.results.length;k++){ const rr=e.results[k];
       if(rr.isFinal) fin+=" "+rr[0].transcript; else itm+=rr[0].transcript; }
-    m.last=Date.now(); show(); };
+    m.last=Date.now(); m.netErr=0; got=true; show(); };
+  // на стиках шматків телефон іноді дає «aborted», «no-speech», «audio-capture» або разову
+  // «network» - це не кінець запису, просто починаємо наступний шматок
   r.onerror=e=>{
     if(e.error==="not-allowed"||e.error==="service-not-allowed"){ fatal=true; toast("Дозволь мікрофон для сайту"); }
-    else if(e.error==="network"){ fatal=true; toast("Розпізнавання потребує інтернету"); }
+    else if(e.error==="network" && ++m.netErr>=3){ fatal=true; toast("Розпізнавання потребує інтернету"); }
   };
   r.onend=()=>{
     if(TRM!==m) return;
     const part=(fin+" "+itm).trim(); if(part) m.segs.push(part);   // недоговорене теж зберігаємо
     if(typeof tab!=="undefined" && tab!=="s-tr") m.on=false;       // пішов з перекладача - мікрофон вимикаємо
     const now=Date.now();
-    if(m.on && !fatal && now-m.last<TR_SILENCE && now-m.t0<TR_MAX) setTimeout(()=>{ if(TRM===m) trMicSession(); },120);
+    if(m.on && !fatal && now-m.last<TR_SILENCE && now-m.t0<TR_MAX) setTimeout(()=>{ if(TRM===m) trMicSession(); },250);
     else trMicFinish();
   };
-  try{ r.start(); }catch(e){ trMicFinish(); }
+  trMicStart(m, r, 0);
+}
+/** Запустити шматок. Попередній інколи ще не відпустив мікрофон - тоді пробуємо ще раз. */
+function trMicStart(m, r, attempt){
+  if(TRM!==m) return;
+  try{ r.start(); }
+  catch(e){
+    if(m.on && attempt<5) setTimeout(()=>trMicStart(m, r, attempt+1), 300*(attempt+1));
+    else trMicFinish();
+  }
 }
 
 /* ==================== ЗА КЕРМОМ: голосове тренування ====================
