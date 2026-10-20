@@ -1405,6 +1405,14 @@ function loadAll(){
     if(p.session===undefined) p.session=null;
     p.read=p.read||{};
     migrateRenamed(p);
+    /* Одноразово (3.0.10): до 3.0.9 одна правильна відповідь сама ставила «Знаю добре»
+       і ховала слово з уроків. Знімаємо такі позначки, якщо правильних відповідей було
+       не більше двох і слово не оцінене самим користувачем на 9–10. */
+    if(!p.fixAutoMastered){
+      for(const k in p.words){ const w=p.words[k];
+        if(w&&w.status==="mastered"&&(w.ok||0)<=2&&!(w.rated>=9)) w.status=null; }
+      p.fixAutoMastered=true;
+    }
     if(/^(Учень|Мандрівник|Wordhunter)( \d+)?$/.test((p.name||"").trim())) p.name=p.name.trim().replace(/^(Учень|Мандрівник|Wordhunter)/,DEF_NAME);
   }
   if(!a.profiles[a.active]) a.active=Object.keys(a.profiles)[0];
@@ -1886,7 +1894,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.0.9";
+const APP_VERSION="3.0.10";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
