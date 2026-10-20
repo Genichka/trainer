@@ -1154,7 +1154,6 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 <!-- ===== картки ===== -->
 <section id="s-cards" class="screen">
   <div class="topbar">
-    <button class="icon-btn" id="c-prev">⏮</button>
     <div style="flex:1"><div class="track"><span id="c-count"></span>
       <div class="line"><i id="c-line"></i></div><span id="c-score">0</span></div></div>
     <button class="icon-btn" id="c-say">🔊</button>
@@ -1887,7 +1886,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.0.8";
+const APP_VERSION="3.0.9";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -3452,7 +3451,7 @@ function finishBuild(ok,target,isPhrase){
   $("#b-hint").disabled=true; $("#b-skip").disabled=true;
   if(ok && bHints) ok=false;          /* зібрав із підказками — слово ще не вивчене */
   const en=deck[qi][0];
-  markAnswer(curLevel.id,en,ok); autoStatus(en,ok);
+  markAnswer(curLevel.id,en,ok);
   if(ok){ score++; vibrate(18); } else requeue(qi);
   const slot=$("#b-slot"); slot.className="bslot "+(ok?"ok":"no");
   slot.textContent=target;
@@ -3478,7 +3477,7 @@ function showFlash(en,ua){
     [["🔁 Ще вчу",false],["✅ Знаю",true]].forEach(([t,ok])=>{
       const b=document.createElement("button"); b.className="opt big"; b.textContent=t;
       b.onclick=()=>{ if(answered) return; answered=true;
-        markAnswer(curLevel.id,en,ok); autoStatus(en,ok); if(ok) score++; else requeue(qi);
+        markAnswer(curLevel.id,en,ok); if(ok) score++; else requeue(qi);
         $("#c-score").textContent=score; qi++; nextCard(); };
       box.appendChild(b);
     });
@@ -3648,7 +3647,6 @@ function nextCard(){
   $("#c-score").textContent=score;
   $("#c-line").style.width=(qi/deck.length*100)+"%";
   $("#c-emoji").textContent=em;
-  $("#c-prev").style.visibility = qi===0 ? "hidden" : "visible";
 
   const note=S.notes[wkey(curLevel.id,en)];
   $("#c-mnem").textContent = (note && exType!=="pick") ? "🔗 "+note : "";
@@ -3660,7 +3658,7 @@ function nextCard(){
   if(dir==="en2ua"){ p.textContent=en; p.classList.remove("small"); }
   else { p.textContent=ua; p.classList.add("small"); }
   $("#c-repeat").parentNode.style.display = exType==="sprint" ? "none" : "";
-  if(exType==="sprint"){ tickSprint(); $("#c-prev").style.visibility="hidden"; $("#c-sent").innerHTML=""; $("#c-mnem").textContent=""; return showSprint(en,ua); }
+  if(exType==="sprint"){ tickSprint(); $("#c-sent").innerHTML=""; $("#c-mnem").textContent=""; return showSprint(en,ua); }
   if(exType==="flash") return showFlash(en,ua);
   if(exType==="listen") return showListen(en,ua,st);
   if(exType==="build"){ $("#c-hint").textContent="Збери слово з літер"; return showBuild(en,false); }
@@ -3904,7 +3902,7 @@ function checkTyped(){
   const ok = okText && !typoHinted;
   answered=true;
   if(ok) typoSolved(right); else rememberTypo(right,val);
-  markAnswer(curLevel.id,right,ok); autoStatus(right,ok);
+  markAnswer(curLevel.id,right,ok);
   if(ok){ score++; vibrate(18); }
   else { vibrate([25,60,25]); requeue(qi); }
   showTypedResult(ok,right,val,okText);
@@ -3930,10 +3928,19 @@ function optsSkip(){
 }
 function answerCard(btn,ok,right){
   if(answered)return; answered=true;
-  if(ok && oHint){ ok=false; }        /* відповів після підказки — слово ще не вивчене */
-  markAnswer(curLevel.id,deck[qi][0],ok); autoStatus(deck[qi][0],ok);
+  /* правильно, але після «Прибрати зайве»: показуємо зеленим, без балу й без зміни інтервалу,
+     слово повертається ще раз у цьому ж занятті */
+  if(ok && oHint){
+    btn.classList.add("ok"); requeue(qi);
+    $$("#c-opts .opt").forEach(b=>b.disabled=true);
+    $("#c-sent").innerHTML=sentHtml(deck[qi][0],true);
+    lsnReveal();
+    setTimeout(()=>{ qi++; nextCard(); }, 900);
+    return;
+  }
+  markAnswer(curLevel.id,deck[qi][0],ok);
   if(ok){ score++; btn.classList.add("ok"); vibrate(18); }
-  else{ btn.classList.add("no"); vibrate([25,60,25]); requeue(qi);
+  else{ if(btn.dataset.right!=="1") btn.classList.add("no"); vibrate([25,60,25]); requeue(qi);
     $$("#c-opts .opt").forEach(b=>{ if(b.textContent===right) b.classList.add("ok"); });
     if(train==="listen") lsnSay(false); else say(deck[qi][0]); }
   $$("#c-opts .opt").forEach(b=>b.disabled=true);
@@ -4374,7 +4381,6 @@ $("#r-say").onclick     =()=>{ const t=curText&&(TEXTS[curText.lvId]||[])[curTex
                                if(t) say(t.text.replace(/\s+/g," ").slice(0,300)); };
 $("#go-cw").onclick     =()=>startCrossword(getLevel(S.level));
 $("#c-close").onclick   =()=>{ stopSprint(); sprintEnd=0; closeOverlay(); };
-$("#c-prev").onclick    =()=>{ if(qi>0){ qi--; nextCard(); } };
 $("#b-hint").onclick    =buildHint;
 $("#b-skip").onclick    =buildGiveUp;
 $("#w-close").onclick   =()=>{ clearInterval(cwTimer); closeOverlay(); };
@@ -4394,15 +4400,8 @@ document.addEventListener("click",e=>{
     toast(w.textContent+" — "+w.dataset.tr);
   }
 });
-/* Автопозначка після відповіді у вправі: помилка -> «Повторювати»,
-   правильна відповідь -> «Знаю добре». Кнопки лишаються — позначку можна змінити вручну. */
-function autoStatus(en,ok){
-  if(!curLevel||!en) return;
-  const k=wkey(curLevel.id,en), w=S.words[k]||{b:0,due:0,seen:0,ok:0,err:0};
-  w.status = ok ? "mastered" : "repeat";
-  S.words[k]=w; save();
-  updateStatusBtns(w.status);
-}
+/* Позначки «Повторювати» / «Знаю добре» ставить лише користувач.
+   Після відповідей слово рухається інтервальним повторенням (markAnswer). */
 function updateStatusBtns(status){
   $("#c-repeat").classList.toggle("on",status==="repeat");
   $("#c-known").classList.toggle("on",status==="mastered");
@@ -4444,7 +4443,7 @@ $("#c-skip").onclick    =()=>{
   if(answered) return;
   answered=true;
   const right=deck[qi][0];
-  markAnswer(curLevel.id,right,false); autoStatus(right,false); requeue(qi);
+  markAnswer(curLevel.id,right,false); requeue(qi);
   showTypedResult(false,right,"");
 };
 
