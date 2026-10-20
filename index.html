@@ -1223,7 +1223,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
   </div>
   <div style="padding-bottom:12px">
     <div class="row2">
-      <button class="btn ghost" id="i-note">Своя зачіпка</button>
+      <button class="btn ghost" id="i-note">Мій коментар</button>
       <button class="btn primary" id="i-next">Далі</button>
     </div>
   </div>
@@ -1295,10 +1295,10 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 
 <div class="modal" id="modal-note">
   <div class="box">
-    <h2 id="nt-title">Своя зачіпка</h2>
+    <h2 id="nt-title">Мій коментар</h2>
     <div class="sub" style="color:var(--dim);margin-bottom:10px">
       Асоціація, співзвуччя, картинка в голові — усе, що допоможе пригадати.
-      Своя зачіпка працює краще за чужу.
+      Своя асоціація працює краще за чужу.
     </div>
     <textarea id="nt-text" class="note-box" maxlength="140"
       placeholder="напр.: bread — бред, маячня про хліб"></textarea>
@@ -1887,7 +1887,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.0.4";
+const APP_VERSION="3.0.5";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -2324,7 +2324,7 @@ let listLevel=null;   /* який рівень переглядаємо у сп�
 function renderList(){
   const lv=getLevel(listLevel||S.level), s=lvStats(lv);
   $("#l-title").textContent=lv.code+" · "+lv.name;
-  $("#l-sub").textContent=s.total+" слів · тап — озвучити, довгий тап — своя зачіпка";
+  $("#l-sub").textContent=s.total+" слів · тап — озвучити, довгий тап — мій коментар";
   /* ряд рівнів із кількістю слів — щоб бачити обсяг кожного і перемикатись між ними */
   const lbox=$("#chips-llevel"); lbox.innerHTML="";
   LEVELS_VIEW.forEach(l=>{
