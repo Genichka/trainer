@@ -778,6 +778,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .mt-w.sel{outline:3px solid var(--chalk);transform:translateY(-2px)}
 .mt-w.done{opacity:.55;box-shadow:none;cursor:default}
 .mt-w.bad{animation:mtShake .35s}
+.mt-w.hint{outline:3px dashed var(--chalk);outline-offset:3px}
 @keyframes mtShake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .mt-info{text-align:center;color:var(--dim);font-size:14px;margin:4px 0 10px}
 .mt-res{text-align:center;margin:14px 0 6px;font-size:16px}
@@ -1843,8 +1844,8 @@ let toastT;
 function toast(m){ const e=$("#toast"); e.textContent=m; e.classList.add("on");
   clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove("on"),1800); }
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
-function say(t){ if(!S.sound)return; try{ if(!window.speechSynthesis)return;
-  speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang="en-US"; u.rate=.9; speechSynthesis.speak(u);}catch(e){} }
+function say(t,lang){ if(!S.sound)return; try{ if(!window.speechSynthesis)return;
+  speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang=lang||"en-US"; u.rate=.9; speechSynthesis.speak(u);}catch(e){} }
 function vibrate(p){ try{ navigator.vibrate&&navigator.vibrate(p); }catch(e){} }
 function mmss(ms){ const s=Math.floor(ms/1000); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
 
@@ -1905,7 +1906,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.1.1";
+const APP_VERSION="3.2.0";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -4542,67 +4543,81 @@ checkRemind();
 renderVersion();
 
 /* ==================== Збери валізу ====================
-   П'ять слів рівня: зліва англійською, справа переклад, перемішані.
-   Торкнись слова й потім його перекладу (або навпаки) - з'являється
+   Слова зліва й справа перемішані, а сторони щораз міняються місцями.
+   Торкнись слова, потім його перекладу (або навпаки) - з'являється
    пунктирна лінія, а річ «падає» у валізу. Помилка - кнопка трясеться,
-   слово йде в «роботу над помилками». Перша спроба без помилки = «знаю»
-   (так само, як в інших тренуваннях: markAnswer). */
-const MT_N=5;
+   слово йде в «роботу над помилками». Після двох помилок на одне слово
+   підсвічується його правильна пара. Кількість слів залежить від рівня.
+   Перша спроба без помилки = «знаю» (markAnswer). Серія - скільки пар
+   поспіль без помилки. Зірки: 3 - без помилок, 2 - до двох помилок, 1 - більше. */
+const MT_N={a1:3,a2:4,b1:5,b2:6,tech:7,hydro:4};
 let MT=null;
-function openMatch(){ MT={lv:getLevel(S.level), round:0, okAll:0, errAll:0}; matchRound(); openOverlay("s-match"); }
+function openMatch(){ MT={lv:getLevel(S.level), round:0, okAll:0, errAll:0, streak:0, best:0}; matchRound(); openOverlay("s-match"); }
 function matchRound(){
-  const lv=MT.lv, deck=pickDeck(lv,"mix").slice(0,MT_N);
+  const lv=MT.lv, n=MT_N[lv.id]||5, deck=pickDeck(lv,"mix").slice(0,n);
   if(deck.length<2){ toast("Поки замало слів для валізи"); closeOverlay(); return; }
-  Object.assign(MT,{deck, sel:null, done:0, err:{}, lines:[], round:MT.round+1});
+  const flip=Math.random()<.5;                     // з якого боку англійська
+  Object.assign(MT,{deck, sel:null, done:0, err:{}, errCnt:{}, lines:[], streak:0, round:MT.round+1});
   $("#mt-bag").innerHTML=deck.map(w=>'<i data-en="'+escAttr(w[0])+'">'+(w[2]||"📦")+'</i>').join("");
-  const left=shuffle(deck), right=shuffle(deck);
+  const enCol=shuffle(deck).map(w=>'<button class="mt-w en" data-en="'+escAttr(w[0])+'">'+w[0]+'</button>');
+  const uaCol=shuffle(deck).map(w=>'<button class="mt-w ua" data-en="'+escAttr(w[0])+'">'+w[1]+'</button>');
+  const L=flip?uaCol:enCol, R=flip?enCol:uaCol;
   let html='<svg id="mt-svg"></svg>';
-  for(let i=0;i<deck.length;i++){
-    html+='<button class="mt-w en" data-en="'+escAttr(left[i][0])+'">'+left[i][0]+'</button>';
-    html+='<button class="mt-w ua" data-en="'+escAttr(right[i][0])+'">'+right[i][1]+'</button>';
-  }
+  for(let i=0;i<deck.length;i++) html+=L[i]+R[i];
   $("#mt-cols").innerHTML=html; $("#mt-cols").style.display="grid";
   $("#mt-end").style.display="none";
-  $("#mt-info").textContent="Валіза "+MT.round+" · рівень "+lv.code+" · торкнись слова, потім переклад";
+  matchInfo();
+}
+function matchInfo(){
+  $("#mt-info").textContent="Валіза "+MT.round+" · рівень "+MT.lv.code+" · серія "+MT.streak+" · торкнись слова, потім переклад";
 }
 function matchLines(){
   const box=$("#mt-cols"), svg=$("#mt-svg"); if(!box||!svg) return;
   const r0=box.getBoundingClientRect();
   svg.innerHTML=MT.lines.map(en=>{
-    const a=box.querySelector('.mt-w.en[data-en="'+CSS.escape(en)+'"]').getBoundingClientRect();
-    const b=box.querySelector('.mt-w.ua[data-en="'+CSS.escape(en)+'"]').getBoundingClientRect();
+    const e=box.querySelector('.mt-w.en[data-en="'+CSS.escape(en)+'"]').getBoundingClientRect();
+    const u=box.querySelector('.mt-w.ua[data-en="'+CSS.escape(en)+'"]').getBoundingClientRect();
+    const [a,b]=e.left<u.left?[e,u]:[u,e];         // a - ліва кнопка, b - права
     return '<line x1="'+(a.right-r0.left-6)+'" y1="'+(a.top+a.height/2-r0.top)+'" x2="'+(b.left-r0.left+6)+'" y2="'+(b.top+b.height/2-r0.top)+'"/>';
   }).join("");
+}
+function matchHint(en){
+  $$('#mt-cols .mt-w[data-en="'+CSS.escape(en)+'"]:not(.done)').forEach(b=>b.classList.add("hint"));
 }
 function matchTap(btn){
   if(!MT||btn.classList.contains("done")) return;
   const side=btn.classList.contains("en")?"en":"ua";
-  if(side==="en") say(btn.dataset.en);
+  if(side==="en") say(btn.dataset.en); else say(btn.textContent,"uk-UA");
   if(!MT.sel || MT.sel.side===side){
     if(MT.sel) MT.sel.btn.classList.remove("sel");
     MT.sel={btn,side}; btn.classList.add("sel"); return;
   }
   const a=MT.sel.btn, en=a.dataset.en; a.classList.remove("sel"); MT.sel=null;
-  const enOf=side==="en"?btn.dataset.en:en, other=side==="en"?a:btn, mine=side==="en"?btn:a;
+  const mine=side==="en"?btn:a, other=side==="en"?a:btn;   // mine - англійська, other - переклад
   if(btn.dataset.en===en){
     a.classList.add("done"); btn.classList.add("done");
     MT.lines.push(en); matchLines();
     const it=$('#mt-bag i[data-en="'+CSS.escape(en)+'"]'); if(it) it.classList.add("in");
     if(!MT.err[en]){ markAnswer(MT.lv,en,true); MT.okAll++; }
-    vibrate(15);
+    MT.streak++; MT.best=Math.max(MT.best,MT.streak);
+    matchInfo(); vibrate(15);
     if(++MT.done===MT.deck.length) matchFinish();
   } else {
     // помилка: обидва слова - у «роботу над помилками», один раз за раунд
-    [mine.dataset.en, other.dataset.en].forEach(x=>{ if(!MT.err[x]){ MT.err[x]=1; markAnswer(MT.lv,x,false); MT.errAll++; } });
+    [mine.dataset.en, other.dataset.en].forEach(x=>{
+      if(!MT.err[x]){ MT.err[x]=1; markAnswer(MT.lv,x,false); MT.errAll++; }
+      MT.errCnt[x]=(MT.errCnt[x]||0)+1;
+      if(MT.errCnt[x]>=2) matchHint(x);
+    });
+    MT.streak=0; matchInfo();
     [a,btn].forEach(x=>{ x.classList.remove("bad"); void x.offsetWidth; x.classList.add("bad"); });
     vibrate([40,40,40]);
   }
-  void enOf;
 }
 function matchFinish(){
-  const errs=Object.keys(MT.err).length;
-  $("#mt-res").innerHTML = errs ? ("Валізу зібрано! 🧳<br>Без помилок: <b>"+(MT.deck.length-errs)+"</b> з "+MT.deck.length)
-                                : "Валізу зібрано без жодної помилки! 🧳✨";
+  const errs=Object.keys(MT.err).length, n=MT.deck.length, stars=errs===0?3:(errs<=2?2:1);
+  $("#mt-res").innerHTML = "⭐".repeat(stars)+"<br>"+(errs ? "Валізу зібрано! 🧳<br>Без помилок: <b>"+(n-errs)+"</b> з "+n
+                                : "Валізу зібрано без жодної помилки! 🧳✨")+"<br>Найдовша серія: <b>"+MT.best+"</b>";
   setTimeout(()=>{ $("#mt-end").style.display="block"; },500);
 }
 $("#mt-cols").addEventListener("click",e=>{ const b=e.target.closest(".mt-w"); if(b) matchTap(b); });
