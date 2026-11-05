@@ -1914,7 +1914,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.2.1";
+const APP_VERSION="3.3.0";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -4633,6 +4633,34 @@ $("#mt-next").onclick=matchRound;
 $("#mt-done").onclick=()=>{ MT=null; closeOverlay(); };
 $("#mt-back").onclick=()=>{ MT=null; closeOverlay(); };
 window.addEventListener("resize",()=>{ if(MT&&overlay==="s-match") matchLines(); });
+
+/* ==================== слова зі SpeedRead ====================
+   SpeedRead (тренажер швидкочитання) відкриває WordHunter посиланням #sr-add=рівень:слово,рівень:слово…
+   Такі слова отримують позначку «важко» (repeat): ідуть першими в уроках свого рівня
+   і потрапляють у «Роботу над помилками». */
+function importFromSpeedRead(){
+  const h=location.hash||""; if(!h.startsWith("#sr-add=")) return;
+  try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){}
+  const by={}; let n=0, notNoun=0;
+  h.slice(8).split(",").forEach(pair=>{
+    const j=pair.indexOf(":"); if(j<1) return;
+    let lv,en; try{ lv=decodeURIComponent(pair.slice(0,j)); en=decodeURIComponent(pair.slice(j+1)); }catch(e){ return; }
+    const L=LEVELS.find(l=>l.id===lv); if(!L) return;
+    const w=L.words.find(x=>x[0].toLowerCase()===en.toLowerCase()); if(!w) return;
+    const k=wkey(lv,w[0]), st=S.words[k]||{b:0,due:0,seen:0,ok:0,err:0};
+    st.status="repeat"; S.words[k]=st; n++;
+    by[L.code]=(by[L.code]||0)+1;
+    if(S.nounsOnly && !NOUNS.has(w[0]) && !talkSet().has(w[0])) notNoun++;
+  });
+  if(!n){ toast("SpeedRead: цих слів немає в словнику"); return; }
+  save();
+  try{ renderHome(); }catch(e){}
+  const parts=Object.entries(by).map(([c,k])=>c+" — "+k).join(", ");
+  toast("Зі SpeedRead: "+n+" сл. у «Роботу над помилками» ("+parts+")"+(notNoun?" · "+notNoun+" не іменники: видно з вимкненим «Лише іменники»":""));
+  clearTimeout(toastT); toastT=setTimeout(()=>$("#toast").classList.remove("on"),6000);
+}
+importFromSpeedRead();
+window.addEventListener("hashchange", importFromSpeedRead);
 
 $("#h-upd").onclick=e=>{ e.stopPropagation(); if(UPD) askUpdate(); else checkUpdate(true); };
 $("#um-go").onclick=doUpdate;
