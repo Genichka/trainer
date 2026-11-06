@@ -747,6 +747,12 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .updmodal{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px}
 .updmodal[hidden]{display:none}
 .homever{text-align:center;margin:0;padding:10px 0 18px;color:var(--dim);font-size:12.5px;line-height:2}
+/* QR для встановлення на інший телефон + посилання під ним */
+.homeqr{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.homeqr .qr{display:block;line-height:0;padding:6px;background:#fff;border-radius:8px}
+.homeqr .qr svg{display:block;max-width:100%;height:auto}
+.homeqr .qtx{font-size:12px;color:var(--dim);max-width:240px}
+.homeqr .qlink{font-size:13px;color:var(--cyan);text-decoration:none;font-family:"Roboto Mono",ui-monospace,monospace}
 .updmsg{display:block;min-height:1.2em;font-size:12.5px}
 .hupd{border:1.5px solid color-mix(in srgb,var(--chalk) 25%,transparent);background:var(--board-lt);color:var(--chalk);
   font:inherit;font-size:12.5px;font-weight:600;border-radius:12px;padding:4px 10px;cursor:pointer;margin-left:6px}
@@ -827,6 +833,11 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
     <div class="brand"><span class="bw">Word</span><span class="bh">Hunter</span><div class="tag">полюй на англійські слова</div></div>
     <button class="skillbig" id="go-skill"><span class="ic">🎯</span>
       <span class="t">Вчити слова</span><span class="d" id="go-skill-d">урок на сьогодні</span></button>
+    <div class="homeqr">
+      <a class="qr" href="https://genichka.github.io/trainer/" target="_blank" rel="noopener"><svg width="132" height="132" role="img" aria-label="QR-код: https://genichka.github.io/trainer/" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33"><path fill="#fff" d="M0 0h33v33h-33z"/><path stroke="#111217" d="M2 2.5h7m6 0h2m1 0h1m1 0h2m2 0h7m-29 1h1m5 0h1m1 0h1m1 0h3m1 0h2m3 0h2m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m3 0h2m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h7m3 0h2m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h1m1 0h4m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m3 0h1m2 0h1m1 0h2m1 0h2m2 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-20 1h1m1 0h1m1 0h2m1 0h2m1 0h1m-20 1h1m1 0h1m1 0h1m1 0h1m4 0h2m1 0h4m1 0h2m3 0h1m2 0h1m-27 1h1m2 0h2m2 0h3m1 0h1m1 0h1m5 0h3m2 0h1m2 0h1m-28 1h2m1 0h1m1 0h3m2 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h3m1 0h3m-22 1h1m4 0h1m4 0h4m1 0h3m2 0h1m-27 1h3m2 0h1m2 0h1m1 0h2m4 0h1m3 0h2m2 0h1m1 0h2m-28 1h3m4 0h1m1 0h4m2 0h1m3 0h3m2 0h1m2 0h1m-29 1h1m1 0h7m2 0h2m1 0h1m2 0h1m7 0h1m1 0h2m-29 1h1m1 0h1m1 0h1m2 0h1m2 0h10m1 0h1m2 0h2m1 0h1m-28 1h2m1 0h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h7m2 0h1m1 0h2m-27 1h1m1 0h2m1 0h2m2 0h1m2 0h1m1 0h1m3 0h3m2 0h2m1 0h1m-29 1h1m1 0h1m2 0h2m2 0h2m1 0h2m2 0h2m5 0h2m2 0h2m-28 1h1m1 0h1m1 0h1m1 0h2m2 0h2m3 0h3m1 0h1m1 0h1m2 0h1m1 0h1m-28 1h1m2 0h1m1 0h2m1 0h2m1 0h1m3 0h3m2 0h5m-17 1h2m2 0h2m2 0h5m3 0h1m1 0h3m-29 1h7m3 0h1m3 0h1m4 0h2m1 0h1m1 0h2m1 0h2m-29 1h1m5 0h1m4 0h1m1 0h3m1 0h1m2 0h1m3 0h2m2 0h1m-29 1h1m1 0h3m1 0h1m1 0h4m2 0h4m2 0h5m3 0h1m-29 1h1m1 0h3m1 0h1m3 0h5m1 0h5m2 0h2m1 0h3m-29 1h1m1 0h3m1 0h1m1 0h7m2 0h3m3 0h3m2 0h1m-29 1h1m5 0h1m3 0h1m3 0h2m1 0h1m1 0h3m2 0h1m2 0h1m-28 1h7m1 0h3m2 0h2m1 0h2m2 0h5m2 0h2"/></svg></a>
+      <div class="qtx">Наведи камеру — WordHunter відкриється на іншому телефоні</div>
+      <a class="qlink" href="https://genichka.github.io/trainer/" target="_blank" rel="noopener">genichka.github.io/trainer</a>
+    </div>
   </div>
   <p class="homever"><span id="ver-home"></span> <button class="hupd" id="h-upd">🔄 Оновити</button> <span class="updmsg" id="upd-msg"></span></p>
 </section>
@@ -1914,7 +1925,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.3.0";
+const APP_VERSION="3.4.0";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
