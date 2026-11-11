@@ -816,8 +816,6 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 .hupd{min-height:40px}
 #s-list .topbar{display:flex;align-items:center;gap:10px}
 #s-list .topbar #l-close{order:2;margin-left:auto}
-.langsw{justify-content:center;margin-top:14px}
-#lang-lvl{justify-content:flex-start;margin:0 0 12px}
 </style>
 <link rel="manifest" href="./manifest.json">
 <meta name="apple-mobile-web-app-title" content="WordHunter">
@@ -835,7 +833,6 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
     <div class="brand"><span class="bw">Word</span><span class="bh">Hunter</span><div class="tag">полюй на англійські слова</div></div>
     <button class="skillbig" id="go-skill"><span class="ic">🎯</span>
       <span class="t">Вчити слова</span><span class="d" id="go-skill-d">урок на сьогодні</span></button>
-    <div class="chips langsw" id="lang-home"></div>
     <div class="homeqr">
       <a class="qr" href="https://genichka.github.io/trainer/" target="_blank" rel="noopener"><svg width="132" height="132" role="img" aria-label="QR-код: https://genichka.github.io/trainer/" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33"><path fill="#fff" d="M0 0h33v33h-33z"/><path stroke="#111217" d="M2 2.5h7m6 0h2m1 0h1m1 0h2m2 0h7m-29 1h1m5 0h1m1 0h1m1 0h3m1 0h2m3 0h2m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m3 0h2m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h7m3 0h2m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h1m1 0h4m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m3 0h1m2 0h1m1 0h2m1 0h2m2 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-20 1h1m1 0h1m1 0h2m1 0h2m1 0h1m-20 1h1m1 0h1m1 0h1m1 0h1m4 0h2m1 0h4m1 0h2m3 0h1m2 0h1m-27 1h1m2 0h2m2 0h3m1 0h1m1 0h1m5 0h3m2 0h1m2 0h1m-28 1h2m1 0h1m1 0h3m2 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h3m1 0h3m-22 1h1m4 0h1m4 0h4m1 0h3m2 0h1m-27 1h3m2 0h1m2 0h1m1 0h2m4 0h1m3 0h2m2 0h1m1 0h2m-28 1h3m4 0h1m1 0h4m2 0h1m3 0h3m2 0h1m2 0h1m-29 1h1m1 0h7m2 0h2m1 0h1m2 0h1m7 0h1m1 0h2m-29 1h1m1 0h1m1 0h1m2 0h1m2 0h10m1 0h1m2 0h2m1 0h1m-28 1h2m1 0h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h7m2 0h1m1 0h2m-27 1h1m1 0h2m1 0h2m2 0h1m2 0h1m1 0h1m3 0h3m2 0h2m1 0h1m-29 1h1m1 0h1m2 0h2m2 0h2m1 0h2m2 0h2m5 0h2m2 0h2m-28 1h1m1 0h1m1 0h1m1 0h2m2 0h2m3 0h3m1 0h1m1 0h1m2 0h1m1 0h1m-28 1h1m2 0h1m1 0h2m1 0h2m1 0h1m3 0h3m2 0h5m-17 1h2m2 0h2m2 0h5m3 0h1m1 0h3m-29 1h7m3 0h1m3 0h1m4 0h2m1 0h1m1 0h2m1 0h2m-29 1h1m5 0h1m4 0h1m1 0h3m1 0h1m2 0h1m3 0h2m2 0h1m-29 1h1m1 0h3m1 0h1m1 0h4m2 0h4m2 0h5m3 0h1m-29 1h1m1 0h3m1 0h1m3 0h5m1 0h5m2 0h2m1 0h3m-29 1h1m1 0h3m1 0h1m1 0h7m2 0h3m3 0h3m2 0h1m-29 1h1m5 0h1m3 0h1m3 0h2m1 0h1m1 0h3m2 0h1m2 0h1m-28 1h7m1 0h3m2 0h2m1 0h2m2 0h5m2 0h2"/></svg></a>
       <div class="qtx">Наведи камеру — WordHunter відкриється на іншому телефоні</div>
@@ -1045,7 +1042,6 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
   <div class="head"><div style="flex:1"><h1>Обери рівень</h1>
     <div class="sub">Від нього залежать слова, тексти й кросворд</div></div>
     <button aria-label="Назад" title="Назад" class="homebtn" data-back="prev"><svg class="bk" viewBox="0 0 96 96" aria-hidden="true"><g fill="none" style="stroke:var(--yellow)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M70 48H28"/><path d="M45 30L27 48L45 66"/></g></svg></button></div>
-  <div class="chips langsw" id="lang-lvl"></div>
   <div id="lvl-list"></div>
   <div class="spacer"></div>
 </section>
@@ -1053,7 +1049,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 <!-- ===== КРОСВОРД ===== -->
 <section id="s-cwhome" class="screen">
   <div class="head"><div style="flex:1"><h1>Кросворд</h1>
-    <div class="sub" id="cw-sub">Підказка — переклад, відповідь — англійською</div></div>
+    <div class="sub">Підказка — переклад, відповідь — англійською</div></div>
     <button aria-label="Назад" title="Назад" class="homebtn" data-back="s-skill"><svg class="bk" viewBox="0 0 96 96" aria-hidden="true"><g fill="none" style="stroke:var(--yellow)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M70 48H28"/><path d="M45 30L27 48L45 66"/></g></svg></button></div>
   <button class="lvmini" id="cw-card">
     <span class="dot" id="cw-dot"></span>
@@ -1333,7 +1329,6 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 </div>
 
 <script src="data/words.js"></script>
-<script src="data/words_de.js"></script>
 <script src="data/texts.js"></script>
 <script src="data/topics.js"></script>
 <script src="data/voice.js"></script>
@@ -1351,7 +1346,7 @@ const ipaOf=en=>IPA[en]?"["+IPA[en]+"]":"";
 let TALKSET=null;
 const talkSet=()=>TALKSET||(TALKSET=new Set(TOPIC_WORDS.talk||[]));
 function LW(lv){ if(!S||!S.nounsOnly) return lv.words; const k="_n";
-  return lv[k]||(lv[k]=lv.words.filter(w=>NOUNS.has(w[0])||talkSet().has(w[0])||/^(der|die|das) /.test(w[0]))); }
+  return lv[k]||(lv[k]=lv.words.filter(w=>NOUNS.has(w[0])||talkSet().has(w[0]))); }
 TEXTS.books = BOOKS;
 const AVATARS = ["🙂","🦊","🐻","🐱","🐼","🦁","🐧","🦉","🐢","🚀","⚡","🌟","🎓","🔧","🎯","🍀"];
 
@@ -1517,8 +1512,7 @@ function resumeSession(){
   if(z.kind==="cw"){
     grid=Array.from({length:z.rows},()=>Array(z.cols).fill(null));
     placed=(z.words||[]).map(p=>{
-      const src=lv.words.find(x=>x[0]===p.en||cwKey(x[0])===p.en);
-      if(src&&src[0]!==p.en) CW_ORIG[p.en]=src[0];
+      const src=lv.words.find(x=>x[0]===p.en);
       return {en:p.en, ua:src?src[1]:"", em:src?src[2]:"❓", r:p.r, c:p.c, dir:p.dir, len:p.en.length};
     });
     if(!placed.length){ clearSession(); toast("Сеанс застарів"); return; }
@@ -1835,54 +1829,11 @@ function lvStats(lv){
    Сам масив LEVELS не чіпаємо — рівень за замовчуванням лишається A1. */
 const LEVELS_VIEW=[...LEVELS.filter(l=>l.id==="tech"), ...LEVELS.filter(l=>l.id==="hydro"), ...LEVELS.filter(l=>l.id!=="tech"&&l.id!=="hydro")];
 const getLevel=id=>LEVELS.find(l=>l.id===id)||LEVELS[0];
-/* ==================== мова навчання: англійська / німецька ====================
-   Німецькі рівні мають власні id (de_a1…), тож прогрес двох мов не змішується.
-   Технічних рівнів (енергетика, гідроенергетика) у німецькій немає.
-   LEVELS і LEVELS_VIEW підміняються на місці — решта коду працює як раніше. */
-const LEVELS_EN=LEVELS.slice(), LEVELS_VIEW_EN=LEVELS_VIEW.slice();
-const LANGS={en:{f:"🇬🇧",t:"Англійська",inL:"англійською",adj:"англійські",loc:"en-US",v:"en"},
-             de:{f:"🇩🇪",t:"Німецька",inL:"німецькою",adj:"німецькі",loc:"de-DE",v:"de"}};
-let LANG_ON="en";
-const isDE=()=>LANG_ON==="de";
-const LNG=()=>LANGS[LANG_ON];
-function syncLang(){
-  const want=(S&&S.lang==="de")?"de":"en";
-  if(want===LANG_ON && LEVELS[0]===(want==="de"?LEVELS_DE[0]:LEVELS_EN[0])) return;
-  LANG_ON=want;
-  LEVELS.length=0; LEVELS.push(...(isDE()?LEVELS_DE:LEVELS_EN));
-  LEVELS_VIEW.length=0; LEVELS_VIEW.push(...(isDE()?LEVELS_DE:LEVELS_VIEW_EN));
-  WORD_TR=null; WORD_IDX=null; SYN=null;
-  if(!LEVELS.some(l=>l.id===S.level)) S.level=LEVELS[0].id;
-  applyLangTexts(); drawWordKeyboard();
-}
-function setLang(l){
-  if((S.lang||"en")===l) return;
-  S[S.lang==="de"?"lvDe":"lvEn"]=S.level;          // кожна мова памʼятає свій рівень
-  S.lang=l; S.level=S[l==="de"?"lvDe":"lvEn"]||(l==="de"?"de_a1":"a1");
-  save(); syncLang(); toast(LNG().f+" "+LNG().t);
-}
-function bindLangChips(box, after){
-  if(!box) return;
-  box.innerHTML=Object.keys(LANGS).map(k=>'<button class="chip'+(k===LANG_ON?" on":"")+'" data-lang="'+k+'">'
-    +LANGS[k].f+" "+LANGS[k].t+'</button>').join("");
-  box.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{ setLang(b.dataset.lang); after(); });
-}
-function applyLangTexts(){
-  const L=LNG();
-  document.title="WordHunter — "+L.t.toLowerCase();
-  const tag=document.querySelector(".brand .tag"); if(tag) tag.textContent="полюй на "+L.adj+" слова";
-  const mt=document.querySelector("#s-match h1"); if(mt) mt.textContent="Збери валізу "+L.inL+"!";
-  const cw=document.querySelector("#cw-sub"); if(cw) cw.textContent="Підказка — переклад, відповідь — "+L.inL;
-  const ci=document.querySelector("#c-input"); if(ci) ci.placeholder="напиши "+L.inL;
-  /* тексти, книги й «За кермом» — лише англійською */
-  document.querySelectorAll('[data-go="s-texts"],[data-go="drive"]').forEach(b=>b.style.display=isDE()?"none":"");
-}
 
 /* ==================== дрібниці ==================== */
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 let tab="s-home", overlay=null, prevTab="s-learn";
 function showTab(id){
-  syncLang();
   if(id==="s-home" && UPD && updAsked!==UPD.version) setTimeout(()=>{ if(tab==="s-home"&&!overlay) askUpdate(); },400);
   if(id==="s-level" && tab!=="s-level") prevTab=tab;
   overlay=null; tab=id;
@@ -1913,13 +1864,12 @@ function toast(m){ const e=$("#toast"); e.textContent=m; e.classList.add("on");
   clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove("on"),1800); }
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
 function say(t,lang){ if(!S.sound)return; try{ if(!window.speechSynthesis)return;
-  speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang=lang||LNG().loc; if(!lang){ const vv=dvVoice(LNG().v); if(vv) u.voice=vv; } u.rate=.9; speechSynthesis.speak(u);}catch(e){} }
+  speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang=lang||"en-US"; u.rate=.9; speechSynthesis.speak(u);}catch(e){} }
 function vibrate(p){ try{ navigator.vibrate&&navigator.vibrate(p); }catch(e){} }
 function mmss(ms){ const s=Math.floor(ms/1000); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
 
 /* ==================== екран «Рівень» ==================== */
 function renderLevel(){
-  bindLangChips($("#lang-lvl"), renderLevel);
   $("#lvl-list").innerHTML=LEVELS_VIEW.map(lv=>{
     const s=lvStats(lv), on=lv.id===S.level;
     return '<button class="lvpick'+(on?" on":"")+'" style="--c:'+lv.color+'" data-lv="'+lv.id+'">'
@@ -1975,7 +1925,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.5.0";
+const APP_VERSION="3.4.0";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
@@ -2045,14 +1995,13 @@ function renderHome(){
 
   $("#hi-home").textContent="Hello, "+S.name+"!"+((ALL.theme||"grafana")==="grafana"?"":" 👋");
   const st=streak();
-  $("#home-sub").textContent = st ? ("🔥 днів поспіль: "+st) : (LNG().t+" щодня");
-  bindLangChips($("#lang-home"), renderHome);
+  $("#home-sub").textContent = st ? ("🔥 днів поспіль: "+st) : "Англійська щодня";
   const lv=getLevel(S.level), ls=lvStats(lv);
   $("#go-skill-d").textContent=lv.code+" · "+lv.name+(ls.due?" · на сьогодні "+ls.due:"");
 }
 function renderSkill(){
   const lv=getLevel(S.level), s=lvStats(lv);
-  $("#skill-sub").textContent=LNG().f+" "+LNG().t+" · рівень "+lv.code+" · "+lv.name;
+  $("#skill-sub").textContent="Рівень "+lv.code+" · "+lv.name;
   const nb=BOOKS.filter((b,i)=>textRead("books",i)).length;
   $("#sk-texts").textContent=(TEXTS[lv.id]||[]).length+" текстів рівня · книги: "+nb+" / "+BOOKS.length;
   $("#sk-cw").textContent="Зібрано: "+S.stats.cw;
@@ -3661,8 +3610,8 @@ let lsnText="", lsnSub="";
 function lsnSay(slow){
   try{ if(!window.speechSynthesis||!lsnText) return;
     speechSynthesis.cancel(); if(speechSynthesis.paused) speechSynthesis.resume();
-    const u=new SpeechSynthesisUtterance(lsnText); u.lang=LNG().loc;
-    const v=dvVoice(LNG().v); if(v) u.voice=v;
+    const u=new SpeechSynthesisUtterance(lsnText); u.lang="en-US";
+    const v=dvVoice("en"); if(v) u.voice=v;
     u.rate = slow ? .55 : (lsnText.includes(" ")&&lsnText.length>18 ? .85 : .8);
     window.__lsnU=u; speechSynthesis.speak(u);
   }catch(e){}
@@ -3739,7 +3688,7 @@ function nextCard(){
   saveCardsSession();          // автозбереження: кожна нова картка
   const [en,ua,em]=deck[qi], st=wstate(curLevel.id,en);
   exType=train||exerciseFor(st.b);
-  retype=false; typoHinted=false; $("#s-cards").classList.remove("retyping"); $("#c-next").style.display=""; $("#c-input").placeholder="напиши "+LNG().inL;
+  retype=false; typoHinted=false; $("#s-cards").classList.remove("retyping"); $("#c-next").style.display=""; $("#c-input").placeholder="напиши англійською";
   if(!train && typosOf(en).length) exType="type";   // слово з опечаткою тренуємо саме написанням
   dir = (exType==="pick"||exType==="flash"||exType==="sprint") ? "en2ua" : "ua2en";
   $("#c-build").style.display="none"; $("#c-help").style.display="none";
@@ -3770,7 +3719,7 @@ function nextCard(){
 
   if(exType==="type"){
     const tp=typosOf(en);
-    $("#c-hint").innerHTML="Напиши "+LNG().inL
+    $("#c-hint").innerHTML="Напиши англійською"
       +(tp.length?'<div class="typowarn">⚠ Тут була пастка: ти писав «'+escH(tp[tp.length-1])+'» — уважно</div>':"");
     $("#c-opts").style.display="none"; $("#c-help").style.display="none";
     $("#c-type").style.display="block";
@@ -3784,7 +3733,7 @@ function nextCard(){
 
   $("#c-type").style.display="none";
   $("#c-opts").style.display="grid"; $("#c-help").style.display="flex"; oHint=false;
-  $("#c-hint").textContent = exType==="pick" ? "Обери переклад" : ("Як це "+LNG().inL+"?");
+  $("#c-hint").textContent = exType==="pick" ? "Обери переклад" : "Як це англійською?";
   const idx=dir==="en2ua"?1:0, right=deck[qi][idx];
   const syn=synOf(deck[qi][0]);
   const pool=LW(curLevel).filter(w=>w[idx]!==right && !syn.includes(w[0]) && w[1]!==deck[qi][1]);
@@ -3830,7 +3779,7 @@ const sameWord=(a,b)=>{ a=normalize(a); b=normalize(b); return a===b || synOf(b)
    #c-input — readonly-дисплей, системна клавіатура телефона на нього ніколи
    не спливає; весь ввід іде через кнопки нижче або фізичну клавіатуру. */
 function drawWordKeyboard(){
-  const rows=isDE()?["qwertzuiopü","asdfghjklöä","yxcvbnmß"]:["qwertyuiop","asdfghjkl","zxcvbnm"], kb=$("#c-kb");
+  const rows=["qwertyuiop","asdfghjkl","zxcvbnm"], kb=$("#c-kb");
   if(!kb) return;
   kb.innerHTML="";
   rows.forEach((row,ri)=>{
@@ -4128,14 +4077,7 @@ function trimGrid(res,size){
   return {grid:g,placed:res.placed.map(p=>Object.assign({},p,{r:p.r-r0,c:p.c-c0}))};
 }
 const CW_MIN=6;
-/* німецьке «der Apfel» у кросворді — «apfel»; cwOrig повертає справжній ключ слова для прогресу */
-const CW_ORIG={};
-const cwKey=w0=>isDE()?w0.replace(/^(der|die|das) /,"").toLowerCase():w0;
-const cwOrig=k=>CW_ORIG[k]||k;
 function cwPool(lv){
-  if(isDE()) return LW(lv).filter(w=>{ const k=cwKey(w[0]);
-      return /^[a-zäöü]+$/.test(k)&&k.length>=3&&k.length<=9&&wstate(lv.id,w[0]).seen>0; })
-    .map(w=>{ const k=cwKey(w[0]); CW_ORIG[k]=w[0]; return [k,w[1],w[2]]; });
   return LW(lv).filter(w=>/^[a-z]+$/.test(w[0])&&w[0].length>=3&&w[0].length<=9&&wstate(lv.id,w[0]).seen>0);
 }
 function startCrossword(lv){
@@ -4147,7 +4089,7 @@ function startCrossword(lv){
   /* лише слова, які вже зустрічались у навчанні: спершу ті, що пора повторити
      або з помилками, потім решта знайомих */
   const cand=cwPool(lv)
-    .map(w=>{ const st=wstate(lv.id,cwOrig(w[0]));
+    .map(w=>{ const st=wstate(lv.id,w[0]);
       return {w,p:(st.due<=now?3+(st.err||0):1)+(st.status==="repeat"?3:0)+Math.random()}; })
     .sort((a,b)=>b.p-a.p).slice(0,cfg.w*2).map(x=>x.w);
   if(cand.length<CW_MIN){
@@ -4301,8 +4243,8 @@ function typeLetter(ch){
   if(done){
     /* зараховуємо як успішне повторення рівно один раз за кросворд
        (і не зараховуємо, якщо слово відкрите підказкою) */
-    if(!cwScored[p.en]){ cwScored[p.en]="ok"; markAnswer(curLevel.id,cwOrig(p.en),true); }
-    say(cwOrig(p.en)); vibrate(20);
+    if(!cwScored[p.en]){ cwScored[p.en]="ok"; markAnswer(curLevel.id,p.en,true); }
+    say(p.en); vibrate(20);
     const nx=placed.find(w=>!wordDone(w));
     if(nx) selectWord(nx);
   } else if(wordFull(p)){
@@ -4334,7 +4276,7 @@ function hintLetter(){
     if((cwUser[r][c]||"")!==p.en[i]){
       cwUser[r][c]=p.en[i]; sel=[r,c]; cwHints++;
       $("#w-hints").textContent=cwHints;
-      if(wordDone(p)&&!cwScored[p.en]){ cwScored[p.en]="hint"; markAnswer(curLevel.id,cwOrig(p.en),false); }
+      if(wordDone(p)&&!cwScored[p.en]){ cwScored[p.en]="hint"; markAnswer(curLevel.id,p.en,false); }
       drawCw(); showClue(); markClueList(); updateCw();
       saveCwSession();
       return;
@@ -4589,7 +4531,7 @@ $("#m-reset").onclick   =()=>{
 document.addEventListener("keydown",e=>{
   if($("#modal").classList.contains("on")) return;
   if(!$("#s-cw").classList.contains("on")) return;
-  if(/^[a-zA-ZäöüÄÖÜ]$/.test(e.key)) typeLetter(e.key);
+  if(/^[a-zA-Z]$/.test(e.key)) typeLetter(e.key);
   else if(e.key==="Backspace"){ e.preventDefault(); eraseLetter(); }
 });
 /* Фізична клавіатура комп'ютера теж працює у вправі "напиши слово" —
@@ -4607,7 +4549,7 @@ document.addEventListener("keydown",e=>{
   }
   if(e.key==="Backspace"){ e.preventDefault(); eraseWordLetter(); return; }
   if(e.key===" "){ e.preventDefault(); typeWordLetter(" "); return; }
-  if(/^[a-zA-Zʼ'äöüÄÖÜß]$/.test(e.key)) typeWordLetter(e.key.toLowerCase());
+  if(/^[a-zA-Zʼ']$/.test(e.key)) typeWordLetter(e.key.toLowerCase());
 });
 
 drawWordKeyboard();
@@ -4714,7 +4656,7 @@ function importFromSpeedRead(){
   h.slice(8).split(",").forEach(pair=>{
     const j=pair.indexOf(":"); if(j<1) return;
     let lv,en; try{ lv=decodeURIComponent(pair.slice(0,j)); en=decodeURIComponent(pair.slice(j+1)); }catch(e){ return; }
-    const L=LEVELS_EN.find(l=>l.id===lv); if(!L) return;
+    const L=LEVELS.find(l=>l.id===lv); if(!L) return;
     const w=L.words.find(x=>x[0].toLowerCase()===en.toLowerCase()); if(!w) return;
     const k=wkey(lv,w[0]), st=S.words[k]||{b:0,due:0,seen:0,ok:0,err:0};
     st.status="repeat"; S.words[k]=st; n++;
