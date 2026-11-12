@@ -1476,7 +1476,7 @@ const DEF_NAME="Hunter";
 /* Складені «штучні» пари замінено одним словом (training session → training).
    Прогрес, зачіпки й опечатки переносимо на нове слово; якщо воно вже було — лишаємо його дані. */
 const RENAMED={"a2": {"kitchen table": "table", "socket outlet": "socket", "salary day": "payday", "schedule board": "timetable", "gate number": "gate", "route map": "map", "breakfast buffet": "buffet", "waiter tip": "tip", "change money": "change", "shelf label": "label", "training session": "training", "audience seat": "seat", "agreement note": "agreement", "borrowed book": "borrow"}, "b1": {"achieve goal": "achieve", "challenge task": "challenge", "evidence base": "evidence", "procedure step": "procedure", "volunteer group": "volunteer", "cell biology": "biology", "recovery period": "recovery", "branch office": "branch", "client base": "client", "contract term": "term", "deadline extension": "extension", "phase plan": "phase", "resource plan": "resource", "cost estimate": "estimate", "statement of account": "statement", "strategy plan": "strategy", "forecast model": "forecast", "design brief": "brief", "glass material": "glass", "clearance gap": "clearance", "vibration level": "vibration", "insulation layer": "insulation", "ventilation duct": "duct", "spring part": "spring", "nut part": "nut", "frame structure": "frame", "handle part": "handle", "button press": "button", "client app": "app", "storage drive": "drive", "folder tree": "folder", "report bug": "bug", "user account": "account", "permission level": "permission"}, "b2": {"deviate action": "deviate", "condition clause": "clause", "correlate value": "correlate", "dimension of issue": "dimension", "extension of term": "prolongation", "hierarchy level": "hierarchy", "hypothesis test": "hypothesis", "landscape of market": "landscape", "latitude of action": "latitude", "milestone review": "milestone", "oversight body": "oversight", "preference order": "preference"}, "tech": {"replace part": "replace", "verify reading": "verify", "starter device": "starter", "switch device": "switch", "coil bit": "coil", "resolution bit": "resolution", "reactor coil": "reactor"}};
-const MOVED={"tech:hydropower": "hydro:hydropower", "tech:dam": "hydro:dam", "tech:penstock": "hydro:penstock", "tech:spillway": "hydro:spillway", "a2:table": "a1:table", "b1:volunteer": "a2:volunteer", "b1:evidence": "b2:evidence", "b1:procedure": "b2:procedure", "b1:resource": "b2:resource", "b1:estimate": "b2:estimate", "b1:forecast": "b2:forecast", "b1:permission": "b2:permission", "b1:vibration": "tech:vibration", "b1:insulation": "tech:insulation", "b1:phase": "tech:phase", "b1:clearance": "tech:clearance", "b2:hierarchy": "b1:hierarchy", "b2:milestone": "b1:milestone", "tech:replace": "b1:replace", "tech:verify": "b2:verify", "a2:permitslip": "a2:pass", "b1:filterelement": "tech:filter"};
+const MOVED={"de_b1:die Verkehr": "de_b1:der Verkehr", "tech:hydropower": "hydro:hydropower", "tech:dam": "hydro:dam", "tech:penstock": "hydro:penstock", "tech:spillway": "hydro:spillway", "a2:table": "a1:table", "b1:volunteer": "a2:volunteer", "b1:evidence": "b2:evidence", "b1:procedure": "b2:procedure", "b1:resource": "b2:resource", "b1:estimate": "b2:estimate", "b1:forecast": "b2:forecast", "b1:permission": "b2:permission", "b1:vibration": "tech:vibration", "b1:insulation": "tech:insulation", "b1:phase": "tech:phase", "b1:clearance": "tech:clearance", "b2:hierarchy": "b1:hierarchy", "b2:milestone": "b1:milestone", "tech:replace": "b1:replace", "tech:verify": "b2:verify", "a2:permitslip": "a2:pass", "b1:filterelement": "tech:filter"};
 function migrateRenamed(p){
   for(const ok in MOVED){ const nk=MOVED[ok];
     for(const store of [p.words,p.notes,p.typos,p.typoOk]){
@@ -1666,7 +1666,8 @@ window.addEventListener("beforeunload", autosaveNow);
 const wkey=(lv,en)=>lv+":"+en;
 /* Тип вправи росте разом із засвоєнням слова — «бажана складність»:
    впізнати переклад  ->  згадати англійське серед варіантів  ->  написати самому. */
-function sentOf(en){ return SENT[en]||""; }
+var SENT_ACT=null;   /* приклади речень поточної мови: SENT (англ.) або SENT_DE (нім.) — ставить syncLang */
+function sentOf(en){ return (SENT_ACT||SENT)[en]||""; }
 /* Речення з підставленим словом; якщо слово стоїть першим — з великої літери */
 const capFirst=t=>t?t.charAt(0).toUpperCase()+t.slice(1):t;
 function sentFilled(en){ const s=sentOf(en); return s ? capFirst(s.replace("{}",en)) : ""; }
@@ -1675,7 +1676,8 @@ function escAttr(s){ return (s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;")
 let WORD_TR=null;
 function buildWordIndex(){
   WORD_TR={};
-  LEVELS.forEach(lv=>lv.words.forEach(w=>{ WORD_TR[w[0].toLowerCase()]=w[1]; }));
+  LEVELS.forEach(lv=>lv.words.forEach(w=>{ const k=w[0].toLowerCase(); WORD_TR[k]=w[1];
+    const m=k.match(/^(der|die|das) (.+)$/); if(m && !WORD_TR[m[2]]) WORD_TR[m[2]]=w[1]; }));   // німецькі іменники — і без статті
 }
 /* Невеликий словник службових/загальних слів — покриває займенники, прийменники,
    сполучники, допоміжні дієслова та найчастіші слова з прикладів речень.
@@ -1774,9 +1776,25 @@ function baseForms(w){
   }
   return f;
 }
+/* службові слова німецьких прикладів (англійський MINI_DICT для німецької не годиться: was, will, so…) */
+const MINI_DE={"ich":"я","du":"ти","er":"він","sie":"вона/вони","es":"воно/це","wir":"ми","ihr":"ви/її","man":"(безособове)",
+  "mich":"мене","dich":"тебе","mir":"мені","dir":"тобі","uns":"нас/нам","ihn":"його","sich":"себе","mein":"мій","meine":"моя/мої",
+  "meinen":"мого","meiner":"моєї","dein":"твій","deine":"твоя","der":"(артикль ч.р.)","die":"(артикль ж.р./мн.)","das":"(артикль с.р.)/це",
+  "den":"(артикль)","dem":"(артикль)","des":"(артикль)","ein":"один/(артикль)","eine":"одна/(артикль)","einen":"(артикль)","einer":"(артикль)",
+  "ist":"є","sind":"є","bin":"є/я є","war":"був/була","waren":"були","hat":"має","habe":"маю","haben":"мати","wird":"буде/стає","werde":"буду","werden":"ставати/будуть",
+  "kann":"може/можу","kannst":"можеш","können":"могти","will":"хоче/хочу","willst":"хочеш","wollen":"хотіти","muss":"мусить/мушу","musst":"мусиш","müssen":"мусити",
+  "möchte":"хотів би","soll":"має/повинен","sollte":"слід","sollst":"маєш","darf":"можна/може","nicht":"не","kein":"жоден","keine":"жодна/жодних",
+  "sehr":"дуже","noch":"ще","schon":"вже","auch":"також","nur":"лише","zu":"до/занадто","und":"і","aber":"але","oder":"або","wenn":"якщо/коли",
+  "in":"в/у","im":"у (в)","ins":"у (в)","auf":"на","an":"на/біля","am":"на/біля/о","mit":"з","nach":"після/до","aus":"з","für":"для","von":"від/з","vom":"від",
+  "bei":"біля/у","um":"о/навколо","zum":"до","zur":"до","über":"над/про","vor":"перед","hinter":"за","neben":"поруч","unter":"під","bis":"до",
+  "hier":"тут","dort":"там","wo":"де","wie":"як","was":"що","wer":"хто","warum":"чому","jetzt":"зараз","bald":"скоро","gleich":"зараз/одразу",
+  "uhr":"година (час)","euro":"євро","jahre":"років","jahr":"рік","tage":"дні","viel":"багато","viele":"багато","mehr":"більше","weniger":"менше",
+  "alles":"все","etwas":"щось","nichts":"нічого","immer":"завжди","nie":"ніколи","oft":"часто","heute":"сьогодні","morgen":"завтра","gestern":"вчора",
+  "gut":"добре","gern":"охоче","nicht":"не","doch":"же/таки","darauf":"на це","daran":"в це/про це","darum":"тому","es":"це/воно"};
 function lookupWordTranslation(word){
   if(!WORD_TR) buildWordIndex();
   const w=(word||"").toLowerCase();
+  if(LANG_ON==="de") return MINI_DE[w] || WORD_TR[w] || WORD_TR[w.replace(/(e|en|n|s|es)$/,"")] || null;
   if(MINI_DICT[w]) return MINI_DICT[w];
   if(WORD_TR[w]) return WORD_TR[w];
   if(VERB_DICT[w]) return VERB_DICT[w];
@@ -1791,7 +1809,7 @@ function lookupWordTranslation(word){
   return null;
 }
 function wrapWords(text){
-  return text.replace(/[A-Za-z']+/g, m=>{
+  return text.replace(/[A-Za-zÄÖÜäöüß']+/g, m=>{
     const tr=lookupWordTranslation(m);
     return tr ? '<span class="sword" data-tr="'+escAttr(tr)+'" title="'+escAttr(tr)+'">'+m+'</span>' : m;
   });
@@ -1963,6 +1981,7 @@ const isDE=()=>LANG_ON==="de";
 const LNG=()=>LANGS[LANG_ON];
 function syncLang(){
   const want=(S&&S.lang==="de")?"de":"en";
+  SENT_ACT=(want==="de"&&typeof SENT_DE!=="undefined")?SENT_DE:SENT;
   if(want===LANG_ON && LEVELS[0]===(want==="de"?LEVELS_DE[0]:LEVELS_EN[0])) return;
   LANG_ON=want;
   LEVELS.length=0; LEVELS.push(...(isDE()?LEVELS_DE:LEVELS_EN));
@@ -2091,7 +2110,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.6.1";            // лише цифри: за ними порівнюються версії
+const APP_VERSION="3.6.2";            // лише цифри: за ними порівнюються версії
 const APP_DATE="12.11.2026";
 const APP_EDITION="kysya_edition";    // назва прошивки: 3.5.2_kysya_edition
 const verName=v=>{ v=String(v||""); return /_/.test(v) ? v : v+"_"+APP_EDITION; };
@@ -4409,7 +4428,7 @@ function selectCell(r,c){
 
 function showClue(){
   if(!selWord) return; const p=selWord;
-  const s=sentOf(p.en);
+  const s=sentOf(p.en)||sentOf(cwOrig(p.en));   // німецька: у сітці слово без статті, речення — за повною формою
   $("#cw-clue").innerHTML='<div class="em">'+p.em+'</div><div style="flex:1"><div class="tx">'+p.ua+"</div>"
     +(s?'<div class="meta" style="color:var(--dim);margin-top:2px">'+s.replace("{}","___")+"</div>":"")
     +'<div class="meta">№'+p.no+" · "+p.len+" літер · "+(p.dir==="a"?"по горизонталі":"по вертикалі")+"</div></div>";
