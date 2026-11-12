@@ -869,12 +869,13 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 @media (max-height:760px){ #s-home .brand .tag{display:none} }
 @media (max-height:700px){ #s-home .hp-leg,#s-home .hp-more,#s-home .homeqr .qtx{display:none} }
 @media (max-height:600px){ #s-home .brand{display:none} #s-home .hlink{padding:2px 10px} }
-#s-home .homever{flex:none;padding:2px 0 6px;line-height:1.5}
+#s-home .homever{flex:none;padding:0 0 2px;line-height:1.5;text-align:right}
 #s-home .homever{position:relative}
 #s-home .homever{white-space:nowrap;font-size:clamp(10.5px,3.2vw,12.5px)}
 #s-home .hver{padding:2px 6px}
 #s-home .hupd{margin-left:4px;padding:4px 8px;font-size:inherit}
-#s-home .updmsg{position:absolute;left:0;right:0;bottom:100%;min-height:0;line-height:1.3}
+#s-home .updmsg{position:absolute;right:0;top:100%;z-index:3;min-height:0;line-height:1.3;background:var(--board);padding:2px 6px;border-radius:4px}
+#s-home .updmsg:empty{display:none}
 .mo-hint{font-size:13px;color:var(--dim);margin:-4px 0 10px;line-height:1.4}
 .sect-n{font-weight:400;color:var(--green);text-transform:none;letter-spacing:0}
 .ldbars .b.has{background:var(--green)}
@@ -883,6 +884,24 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 @keyframes newBlink{0%,100%{background:transparent;border-color:var(--orange);color:var(--orange)}50%{background:var(--orange);border-color:var(--orange);color:#111217}}
 .hver.newv{font-weight:700;animation:newBlink 1s ease-in-out infinite}
 .hupd.hot{animation:newBlink 1s ease-in-out infinite}
+/* 3.6.1: канал автора під посиланням на гру */
+.qyt{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--chalk);text-decoration:none;
+  border:1px solid var(--gf-line2,rgba(255,255,255,.2));border-radius:6px;padding:3px 8px;align-self:flex-start}
+.qyt .ybolt{width:11px;height:17px;flex:none}
+.qyt b{font-weight:700}.qyt i{font-style:normal}.qyt .e{color:#5794f2}.qyt .u{color:#fade2a}
+.qyt .yt{font-size:9px;color:#fff;background:#f2495c;border-radius:4px;padding:2px 5px;line-height:1.2}
+/* 3.6.1: нижні вкладки помітніші */
+.tabbar{border-top:1px solid color-mix(in srgb,var(--chalk) 22%,transparent);box-shadow:0 -6px 18px rgba(0,0,0,.35)}
+.tabbar button{color:color-mix(in srgb,var(--chalk) 85%,transparent);margin:0 3px;position:relative}
+.tabbar .ti{filter:none;opacity:.9;font-size:22px}
+.tabbar .tt{font-size:12.5px;font-weight:500}
+.tabbar button.on{color:var(--yellow);background:color-mix(in srgb,var(--yellow) 16%,transparent)}
+.tabbar button.on::before{content:"";position:absolute;top:-5px;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--yellow)}
+.tabbar button.on .tt{font-weight:700}
+:root[data-theme="grafana"] .tabbar{border-top-color:var(--gf-line2)}
+:root[data-theme="grafana"] .tabbar button{color:#d8d9e0}
+:root[data-theme="grafana"] .tabbar button.on{color:#8ab4ff;background:color-mix(in srgb,var(--gf-pri) 24%,transparent)}
+:root[data-theme="grafana"] .tabbar button.on::before{background:var(--gf-pri-h)}
 </style>
 <link rel="manifest" href="./manifest.json">
 <meta name="apple-mobile-web-app-title" content="WordHunter">
@@ -892,6 +911,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 
 <!-- ===== СТАРТ ===== -->
 <section id="s-home" class="screen on">
+  <p class="homever"><span class="hver" id="ver-home"></span> <button class="hupd" id="h-upd">🔄 Оновити</button> <span class="updmsg" id="upd-msg"></span></p>
   <div class="head">
     <button class="hname" id="h-name" title="Змінити імʼя"><h1 id="hi-home">Привіт</h1><span class="ed">✎</span></button>
     <button class="hdr-ic" id="h-stats" title="Статистика">📊</button>
@@ -919,10 +939,10 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
     <div class="homeqr">
       <a class="qr" href="https://genichka.github.io/trainer/" target="_blank" rel="noopener"><svg width="132" height="132" role="img" aria-label="QR-код: https://genichka.github.io/trainer/" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33"><path fill="#fff" d="M0 0h33v33h-33z"/><path stroke="#111217" d="M2 2.5h7m6 0h2m1 0h1m1 0h2m2 0h7m-29 1h1m5 0h1m1 0h1m1 0h3m1 0h2m3 0h2m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m3 0h2m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h7m3 0h2m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h1m1 0h4m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m3 0h1m2 0h1m1 0h2m1 0h2m2 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-20 1h1m1 0h1m1 0h2m1 0h2m1 0h1m-20 1h1m1 0h1m1 0h1m1 0h1m4 0h2m1 0h4m1 0h2m3 0h1m2 0h1m-27 1h1m2 0h2m2 0h3m1 0h1m1 0h1m5 0h3m2 0h1m2 0h1m-28 1h2m1 0h1m1 0h3m2 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h3m1 0h3m-22 1h1m4 0h1m4 0h4m1 0h3m2 0h1m-27 1h3m2 0h1m2 0h1m1 0h2m4 0h1m3 0h2m2 0h1m1 0h2m-28 1h3m4 0h1m1 0h4m2 0h1m3 0h3m2 0h1m2 0h1m-29 1h1m1 0h7m2 0h2m1 0h1m2 0h1m7 0h1m1 0h2m-29 1h1m1 0h1m1 0h1m2 0h1m2 0h10m1 0h1m2 0h2m1 0h1m-28 1h2m1 0h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h7m2 0h1m1 0h2m-27 1h1m1 0h2m1 0h2m2 0h1m2 0h1m1 0h1m3 0h3m2 0h2m1 0h1m-29 1h1m1 0h1m2 0h2m2 0h2m1 0h2m2 0h2m5 0h2m2 0h2m-28 1h1m1 0h1m1 0h1m1 0h2m2 0h2m3 0h3m1 0h1m1 0h1m2 0h1m1 0h1m-28 1h1m2 0h1m1 0h2m1 0h2m1 0h1m3 0h3m2 0h5m-17 1h2m2 0h2m2 0h5m3 0h1m1 0h3m-29 1h7m3 0h1m3 0h1m4 0h2m1 0h1m1 0h2m1 0h2m-29 1h1m5 0h1m4 0h1m1 0h3m1 0h1m2 0h1m3 0h2m2 0h1m-29 1h1m1 0h3m1 0h1m1 0h4m2 0h4m2 0h5m3 0h1m-29 1h1m1 0h3m1 0h1m3 0h5m1 0h5m2 0h2m1 0h3m-29 1h1m1 0h3m1 0h1m1 0h7m2 0h3m3 0h3m2 0h1m-29 1h1m5 0h1m3 0h1m3 0h2m1 0h1m1 0h3m2 0h1m2 0h1m-28 1h7m1 0h3m2 0h2m1 0h2m2 0h5m2 0h2"/></svg></a>
       <div class="qinfo"><div class="qtx">Наведи камеру — WordHunter відкриється на іншому телефоні</div>
-      <a class="qlink" href="https://genichka.github.io/trainer/" target="_blank" rel="noopener">genichka.github.io/trainer</a></div>
+      <a class="qlink" href="https://genichka.github.io/trainer/" target="_blank" rel="noopener">genichka.github.io/trainer</a>
+      <a class="qyt" href="https://www.youtube.com/@YevhenShchuka" target="_blank" rel="noopener" title="YouTube-канал автора"><svg class="ybolt" viewBox="0 0 64 100" aria-hidden="true"><defs><linearGradient id="hbf" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#ffa21a"/><stop offset=".45" stop-color="#ff8a10"/><stop offset="1" stop-color="#ff5a00"/></linearGradient><linearGradient id="hbs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe23a"/><stop offset="1" stop-color="#ffb800"/></linearGradient></defs><path d="M44 1 L52 5 L37 37 L62 37 L22 99 L15 95 L26 62 L3 62 Z" fill="url(#hbs)"/><path d="M39 0 L0 58 L24 58 L13 97 L56 33 L30 33 Z" fill="url(#hbf)"/><path d="M39 0 L30 33 L35 33 L42 3 Z" fill="#ffe680" opacity=".5"/></svg><span>канал автора <b><i class="e">Energy</i><i class="u">UA</i></b></span><span class="yt">▶</span></a></div>
     </div>
   </div>
-  <p class="homever"><span class="hver" id="ver-home"></span> <button class="hupd" id="h-upd">🔄 Оновити</button> <span class="updmsg" id="upd-msg"></span></p>
 </section>
 
 <!-- ===== МЕНЮ SKILL ===== -->
@@ -2071,7 +2091,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.6.0";            // лише цифри: за ними порівнюються версії
+const APP_VERSION="3.6.1";            // лише цифри: за ними порівнюються версії
 const APP_DATE="12.11.2026";
 const APP_EDITION="kysya_edition";    // назва прошивки: 3.5.2_kysya_edition
 const verName=v=>{ v=String(v||""); return /_/.test(v) ? v : v+"_"+APP_EDITION; };
