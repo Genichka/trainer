@@ -838,6 +838,9 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 @media (max-height:560px){ #s-home .brand .tag{display:none} }
 #s-home .homever{flex:none;padding:2px 0 6px;line-height:1.5}
 #s-home .homever{position:relative}
+#s-home .homever{white-space:nowrap;font-size:clamp(10.5px,3.2vw,12.5px)}
+#s-home .hver{padding:2px 6px}
+#s-home .hupd{margin-left:4px;padding:4px 8px;font-size:inherit}
 #s-home .updmsg{position:absolute;left:0;right:0;bottom:100%;min-height:0;line-height:1.3}
 /* версія — як у PanelCraft: рамка-плашка; є нова — блимає помаранчевим */
 .hver{display:inline-block;border:1px solid color-mix(in srgb,var(--chalk) 22%,transparent);border-radius:6px;padding:2px 8px;cursor:pointer;white-space:nowrap}
@@ -2001,16 +2004,18 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.5.1";
+const APP_VERSION="3.5.2";            // лише цифри: за ними порівнюються версії
 const APP_DATE="12.11.2026";
+const APP_EDITION="kysya_edition";    // назва прошивки: 3.5.2_kysya_edition
+const verName=v=>{ v=String(v||""); return /_/.test(v) ? v : v+"_"+APP_EDITION; };
 function renderVersion(){
-  const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
+  const t='WordHunter · версія <b>'+verName(APP_VERSION)+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
-  const v=$("#ver-home"); if(v) v.textContent="v"+APP_VERSION+" · "+APP_DATE;
+  const v=$("#ver-home"); if(v) v.textContent="v"+verName(APP_VERSION)+" · "+APP_DATE;
 }
 let UPD=null, updBusy=false, updAsked="";
 const updEsc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const vNum=v=>String(v||"").split(".").map(x=>+x||0);
+const vNum=v=>String(v||"").split("_")[0].split(".").map(x=>parseInt(x,10)||0);
 function vNewer(a,b){ const x=vNum(a), y=vNum(b); for(let i=0;i<3;i++){ if((x[i]||0)!==(y[i]||0)) return (x[i]||0)>(y[i]||0); } return false; }
 async function fetchRemoteVersion(){
   try{
@@ -2025,11 +2030,12 @@ async function fetchRemoteVersion(){
 function updMsg(t){ const e=$("#upd-msg"); if(e) e.textContent=t||""; }
 function updHomeBtn(){
   const b=$("#h-upd"); if(!b) return;
-  b.textContent = UPD ? ("🆕 Є версія "+UPD.version) : "🔄 Оновити";
+  b.textContent = UPD ? "🆕 Оновити" : "🔄 Оновити";   // повна назва нової версії — у вікні оновлення
+  b.title = UPD ? ("Доступна версія "+verName(UPD.version)) : "Перевірити оновлення";
   b.classList.toggle("hot",!!UPD);
   /* як у PanelCraft: поки є нова версія — номер поточної блимає помаранчевим */
   const v=$("#ver-home");
-  if(v){ v.classList.toggle("newv",!!UPD); v.title = UPD ? ("Доступна версія "+UPD.version+" — натисніть, щоб оновити") : "Перевірити оновлення"; }
+  if(v){ v.classList.toggle("newv",!!UPD); v.title = UPD ? ("Доступна версія "+verName(UPD.version)+" — натисніть, щоб оновити") : "Перевірити оновлення"; }
 }
 /** silent - фонова перевірка: нічого не пише, якщо оновлень немає. */
 async function checkUpdate(manual){
@@ -2043,7 +2049,7 @@ async function checkUpdate(manual){
     const rv=await fetchRemoteVersion();
     UPD = vNewer(rv.version,APP_VERSION) ? rv : null;
     updHomeBtn();
-    if(!UPD){ if(manual){ updMsg("у вас найновіша версія ("+APP_VERSION+")"); setTimeout(()=>updMsg(""),4000); } }
+    if(!UPD){ if(manual){ updMsg("у вас найновіша версія ("+verName(APP_VERSION)+")"); setTimeout(()=>updMsg(""),4000); } }
     else { updMsg(""); if(manual || (tab==="s-home" && !overlay && updAsked!==UPD.version)) askUpdate(); }
   }catch(e){ if(manual) updMsg("не вдалося перевірити"); }
   updBusy=false; if(btn) btn.disabled=false;
@@ -2051,14 +2057,14 @@ async function checkUpdate(manual){
 function askUpdate(){
   if(!UPD) return;
   updAsked=UPD.version;
-  $("#um-ver").textContent=UPD.version;
-  $("#um-cur").textContent=APP_VERSION;
+  $("#um-ver").textContent=verName(UPD.version);
+  $("#um-cur").textContent=verName(APP_VERSION);
   $("#um-list").innerHTML = UPD.changes.length ? UPD.changes.map(c=>"• "+updEsc(c)).join("<br>") : "опису змін немає.";
   $("#updmodal").hidden=false;
 }
 async function doUpdate(){
   $("#updmodal").hidden=true;
-  updMsg("оновлюю до "+(UPD?UPD.version:"нової версії")+"…");
+  updMsg("оновлюю до "+(UPD?verName(UPD.version):"нової версії")+"…");
   try{ save(); }catch(e){}
   try{ localStorage.setItem("slova.updFrom",APP_VERSION); }catch(e){}
   try{ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }catch(e){}
@@ -2067,7 +2073,7 @@ async function doUpdate(){
 }
 (()=>{ // після оновлення - коротко сказати, що вийшло
   let from=""; try{ from=localStorage.getItem("slova.updFrom")||""; localStorage.removeItem("slova.updFrom"); }catch(e){}
-  if(from && from!==APP_VERSION) setTimeout(()=>toast("✅ Оновлено: "+from+" → "+APP_VERSION),900);
+  if(from && from!==APP_VERSION) setTimeout(()=>toast("✅ Оновлено: "+from+" → "+verName(APP_VERSION)),900);
 })();
 
 /* ==================== старт і меню ==================== */
