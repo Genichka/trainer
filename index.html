@@ -818,6 +818,32 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 #s-list .topbar #l-close{order:2;margin-left:auto}
 .langsw{justify-content:center;margin-top:14px}
 #lang-lvl{justify-content:flex-start;margin:0 0 12px}
+/* ===== 3.5.1: головна вміщається в один екран без прокрутки ===== */
+#s-home.on{flex:none;height:calc(100vh - var(--nav,0px) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  height:calc(100dvh - var(--nav,0px) - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:hidden;padding-top:6px}
+#s-home .head{padding:4px 0 2px}
+#s-home .homecenter{min-height:0;justify-content:space-evenly;gap:clamp(6px,1.6dvh,18px);padding:4px 0}
+#s-home .brand,:root[data-theme="grafana"] #s-home .brand{font-size:clamp(28px,4.6dvh,40px)}
+#s-home .brand .tag{font-size:clamp(12px,1.7dvh,14px);margin-top:4px}
+#s-home .skillbig,:root[data-theme="grafana"] #s-home .skillbig{flex:none;width:min(100%,300px,29dvh);gap:clamp(4px,1dvh,12px);border-radius:min(28px,3.4dvh)}
+#s-home .skillbig .ic,:root[data-theme="grafana"] #s-home .skillbig .ic{font-size:clamp(36px,7dvh,64px)}
+#s-home .skillbig .t,:root[data-theme="grafana"] #s-home .skillbig .t{font-size:clamp(17px,2.7dvh,22px)}
+#s-home .skillbig .d{font-size:clamp(12px,1.6dvh,14px)}
+#s-home .langsw{margin-top:0}
+#s-home .homeqr{gap:3px}
+#s-home .homeqr .qr svg{width:clamp(72px,14dvh,132px);height:auto}
+#s-home .homeqr .qr{padding:4px}
+#s-home .homeqr .qtx{font-size:11.5px;line-height:1.3}
+@media (max-height:720px){ #s-home .homeqr .qtx{display:none} }
+@media (max-height:560px){ #s-home .brand .tag{display:none} }
+#s-home .homever{flex:none;padding:2px 0 6px;line-height:1.5}
+#s-home .homever{position:relative}
+#s-home .updmsg{position:absolute;left:0;right:0;bottom:100%;min-height:0;line-height:1.3}
+/* версія — як у PanelCraft: рамка-плашка; є нова — блимає помаранчевим */
+.hver{display:inline-block;border:1px solid color-mix(in srgb,var(--chalk) 22%,transparent);border-radius:6px;padding:2px 8px;cursor:pointer;white-space:nowrap}
+@keyframes newBlink{0%,100%{background:transparent;border-color:var(--orange);color:var(--orange)}50%{background:var(--orange);border-color:var(--orange);color:#111217}}
+.hver.newv{font-weight:700;animation:newBlink 1s ease-in-out infinite}
+.hupd.hot{animation:newBlink 1s ease-in-out infinite}
 </style>
 <link rel="manifest" href="./manifest.json">
 <meta name="apple-mobile-web-app-title" content="WordHunter">
@@ -842,7 +868,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
       <a class="qlink" href="https://genichka.github.io/trainer/" target="_blank" rel="noopener">genichka.github.io/trainer</a>
     </div>
   </div>
-  <p class="homever"><span id="ver-home"></span> <button class="hupd" id="h-upd">🔄 Оновити</button> <span class="updmsg" id="upd-msg"></span></p>
+  <p class="homever"><span class="hver" id="ver-home"></span> <button class="hupd" id="h-upd">🔄 Оновити</button> <span class="updmsg" id="upd-msg"></span></p>
 </section>
 
 <!-- ===== МЕНЮ SKILL ===== -->
@@ -1975,11 +2001,12 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.5.0";
+const APP_VERSION="3.5.1";
+const APP_DATE="12.11.2026";
 function renderVersion(){
   const t='WordHunter · версія <b>'+APP_VERSION+'</b>';
   ["#ver-skill","#ver-more"].forEach(s=>{ const e=$(s); if(e) e.innerHTML=t; });
-  const v=$("#ver-home"); if(v) v.textContent="v"+APP_VERSION;
+  const v=$("#ver-home"); if(v) v.textContent="v"+APP_VERSION+" · "+APP_DATE;
 }
 let UPD=null, updBusy=false, updAsked="";
 const updEsc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -2000,6 +2027,9 @@ function updHomeBtn(){
   const b=$("#h-upd"); if(!b) return;
   b.textContent = UPD ? ("🆕 Є версія "+UPD.version) : "🔄 Оновити";
   b.classList.toggle("hot",!!UPD);
+  /* як у PanelCraft: поки є нова версія — номер поточної блимає помаранчевим */
+  const v=$("#ver-home");
+  if(v){ v.classList.toggle("newv",!!UPD); v.title = UPD ? ("Доступна версія "+UPD.version+" — натисніть, щоб оновити") : "Перевірити оновлення"; }
 }
 /** silent - фонова перевірка: нічого не пише, якщо оновлень немає. */
 async function checkUpdate(manual){
@@ -4732,6 +4762,7 @@ importFromSpeedRead();
 window.addEventListener("hashchange", importFromSpeedRead);
 
 $("#h-upd").onclick=e=>{ e.stopPropagation(); if(UPD) askUpdate(); else checkUpdate(true); };
+$("#ver-home").onclick=e=>{ e.stopPropagation(); if(UPD) askUpdate(); else checkUpdate(true); };
 $("#um-go").onclick=doUpdate;
 $("#um-later").onclick=()=>{ $("#updmodal").hidden=true; toast("Добре, спитаю наступного разу"); };
 setTimeout(()=>checkUpdate(false),3000);
