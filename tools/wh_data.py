@@ -12,7 +12,7 @@ import os
 import re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FILES = ["data/words.js", "data/texts.js", "data/topics.js", "data/voice.js"]
+FILES = ["data/words.js", "data/words_de.js", "data/texts.js", "data/topics.js", "data/voice.js"]
 LINE = re.compile(r"^const (\w+)\s*=\s*(new Set\()?(.*?)\)?;\s*$", re.S)
 
 
