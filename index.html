@@ -867,7 +867,8 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 #s-home .homeqr{flex-direction:row;justify-content:center;gap:12px;text-align:left}
 #s-home .homeqr .qr{padding:3px}
 #s-home .homeqr .qr svg{width:clamp(62px,9dvh,96px);height:auto}
-#s-home .homeqr .qinfo{display:flex;flex-direction:column;gap:4px}
+#s-home .homeqr .qinfo{display:flex;flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+.homeqr .qbtn{min-height:36px;padding:6px 12px;border-radius:6px;background:var(--panel2,#22252b);color:var(--chalk,#ccccdc);border:1px solid rgba(204,204,220,.2);font:600 13px inherit;font-family:inherit;cursor:pointer}
 #s-home .homeqr .qtx{font-size:11.5px;line-height:1.3;max-width:200px}
 @media (max-height:760px){ #s-home .brand .tag{display:none} }
 @media (max-height:700px){ #s-home .hp-leg,#s-home .hp-more,#s-home .homeqr .qtx{display:none} }
@@ -909,6 +910,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 /* ---- Заставка EnergyUA при запуску: інтро → QR застосунку, «Поділитися», група EnergyUA в Telegram, «Пропустити» ---- */
 .eua-spl{position:fixed;inset:0;z-index:2147483000;background:#000;display:grid;place-items:center;overflow:auto;transition:opacity .35s;font-family:Inter,Roboto,"Segoe UI",-apple-system,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 .eua-spl.out{opacity:0;pointer-events:none}
+.eua-spl[hidden]{display:none}
 .eua-spl .eua-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;transition:opacity .45s}
 .eua-spl.card .eua-v{opacity:0}
 .eua-spl .eua-skipv{position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:2;background:rgba(255,255,255,.08);color:#ccccdc;border:1px solid rgba(204,204,220,.25);border-radius:999px;padding:9px 18px;font:500 14px inherit;font-family:inherit;cursor:pointer}
@@ -952,19 +954,23 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
 </div>
 <script>
 /* Заставка EnergyUA: раз на запуск (у тій самій вкладці після «Оновити» чи перезавантаження — ні), інтро зі звуком, якщо браузер дозволяє;
-   далі картка з QR. Без інтернету відео не завантажиться — картка зʼявиться одразу. ?nosplash — без заставки. */
+   далі картка з QR. Без інтернету відео не завантажиться — картка зʼявиться одразу. ?nosplash — без заставки.
+   euaQR() — відкрити картку з QR ще раз (кнопка «📱 QR» у застосунку). */
 (function(){ var el=document.getElementById("euaSpl"); if(!el) return; var v=document.getElementById("euaV"), card=document.getElementById("euaCard"), skip=false;
   try{ var u=new URL(location.href); skip=u.searchParams.has("nosplash")||(navigator.webdriver&&!u.searchParams.has("splash"))||sessionStorage.getItem("euaSpl")==="1"; sessionStorage.setItem("euaSpl","1"); }catch(e){}
-  if(skip){ el.remove(); return; }
-  function close(){ if(el.classList.contains("out")) return; el.classList.add("out"); try{ v.pause(); }catch(e){} document.removeEventListener("keydown",key); setTimeout(function(){ el.remove(); },380); }
+  function stopV(){ try{ v.pause(); if(v.getAttribute("src")){ v.removeAttribute("src"); v.load(); } }catch(e){} }
+  function close(){ if(el.hidden||el.classList.contains("out")) return; el.classList.add("out"); document.removeEventListener("keydown",key); setTimeout(function(){ el.hidden=true; el.classList.remove("out"); stopV(); },380); }
   function showCard(){ if(el.classList.contains("card")) return; el.classList.add("card"); card.setAttribute("aria-hidden","false"); setTimeout(function(){ try{ v.pause(); }catch(e){} },500); }
   function key(e){ if(e.key==="Escape") close(); }
   function note(t){ var n=document.createElement("div"); n.className="eua-toast"; n.textContent=t; el.appendChild(n); setTimeout(function(){ n.remove(); },2600); }
-  document.addEventListener("keydown",key);
+  window.euaQR=function(){ stopV(); el.classList.add("card"); card.setAttribute("aria-hidden","false"); el.hidden=false; document.addEventListener("keydown",key); };
   document.getElementById("euaSkipV").onclick=close; document.getElementById("euaSkip").onclick=close;
+  el.addEventListener("click",function(e){ if(e.target===el&&el.classList.contains("card")) close(); });
   document.getElementById("euaShare").onclick=function(){ var url="https://genichka.github.io/trainer/", d={title:"WordHunter",text:"WordHunter — полюй на англійські слова",url:url};
     if(navigator.share){ navigator.share(d).catch(function(){}); return; }
     if(navigator.clipboard) navigator.clipboard.writeText(url).then(function(){ note("Посилання скопійовано — надішли його друзям"); },function(){ note(url); }); else note(url); };
+  if(skip){ el.hidden=true; stopV(); return; }
+  document.addEventListener("keydown",key);
   v.addEventListener("ended",showCard); v.addEventListener("error",showCard); setTimeout(showCard,6000);
   try{ v.muted=false; var p=v.play(); if(p&&p.catch) p.catch(function(){ v.muted=true; var q=v.play(); if(q&&q.catch) q.catch(showCard); }); }catch(e){ showCard(); }
 })();
@@ -999,9 +1005,7 @@ table.cw td.cell.sel span.n{color:#5a4a1a}
       <button class="hlink" id="go-skill">Усі тренування ›</button>
     </div>
     <div class="homeqr">
-      <a class="qr" href="https://genichka.github.io/trainer/" target="_blank" rel="noopener"><svg width="132" height="132" role="img" aria-label="QR-код: https://genichka.github.io/trainer/" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33"><path fill="#fff" d="M0 0h33v33h-33z"/><path stroke="#111217" d="M2 2.5h7m6 0h2m1 0h1m1 0h2m2 0h7m-29 1h1m5 0h1m1 0h1m1 0h3m1 0h2m3 0h2m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m3 0h2m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h7m3 0h2m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h1m1 0h4m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m3 0h1m2 0h1m1 0h2m1 0h2m2 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-20 1h1m1 0h1m1 0h2m1 0h2m1 0h1m-20 1h1m1 0h1m1 0h1m1 0h1m4 0h2m1 0h4m1 0h2m3 0h1m2 0h1m-27 1h1m2 0h2m2 0h3m1 0h1m1 0h1m5 0h3m2 0h1m2 0h1m-28 1h2m1 0h1m1 0h3m2 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h3m1 0h3m-22 1h1m4 0h1m4 0h4m1 0h3m2 0h1m-27 1h3m2 0h1m2 0h1m1 0h2m4 0h1m3 0h2m2 0h1m1 0h2m-28 1h3m4 0h1m1 0h4m2 0h1m3 0h3m2 0h1m2 0h1m-29 1h1m1 0h7m2 0h2m1 0h1m2 0h1m7 0h1m1 0h2m-29 1h1m1 0h1m1 0h1m2 0h1m2 0h10m1 0h1m2 0h2m1 0h1m-28 1h2m1 0h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h7m2 0h1m1 0h2m-27 1h1m1 0h2m1 0h2m2 0h1m2 0h1m1 0h1m3 0h3m2 0h2m1 0h1m-29 1h1m1 0h1m2 0h2m2 0h2m1 0h2m2 0h2m5 0h2m2 0h2m-28 1h1m1 0h1m1 0h1m1 0h2m2 0h2m3 0h3m1 0h1m1 0h1m2 0h1m1 0h1m-28 1h1m2 0h1m1 0h2m1 0h2m1 0h1m3 0h3m2 0h5m-17 1h2m2 0h2m2 0h5m3 0h1m1 0h3m-29 1h7m3 0h1m3 0h1m4 0h2m1 0h1m1 0h2m1 0h2m-29 1h1m5 0h1m4 0h1m1 0h3m1 0h1m2 0h1m3 0h2m2 0h1m-29 1h1m1 0h3m1 0h1m1 0h4m2 0h4m2 0h5m3 0h1m-29 1h1m1 0h3m1 0h1m3 0h5m1 0h5m2 0h2m1 0h3m-29 1h1m1 0h3m1 0h1m1 0h7m2 0h3m3 0h3m2 0h1m-29 1h1m5 0h1m3 0h1m3 0h2m1 0h1m1 0h3m2 0h1m2 0h1m-28 1h7m1 0h3m2 0h2m1 0h2m2 0h5m2 0h2"/></svg></a>
-      <div class="qinfo"><div class="qtx">Наведи камеру — WordHunter відкриється на іншому телефоні</div>
-      <a class="qlink" href="https://genichka.github.io/trainer/" target="_blank" rel="noopener">genichka.github.io/trainer</a>
+      <div class="qinfo"><button class="qbtn" type="button" onclick="euaQR()" aria-label="QR-код і посилання на WordHunter">📱 QR</button>
       <a class="qyt" href="https://www.youtube.com/@YevhenShchuka" target="_blank" rel="noopener" title="YouTube-канал автора"><svg class="ybolt" viewBox="0 0 64 100" aria-hidden="true"><defs><linearGradient id="hbf" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#ffa21a"/><stop offset=".45" stop-color="#ff8a10"/><stop offset="1" stop-color="#ff5a00"/></linearGradient><linearGradient id="hbs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe23a"/><stop offset="1" stop-color="#ffb800"/></linearGradient></defs><path d="M44 1 L52 5 L37 37 L62 37 L22 99 L15 95 L26 62 L3 62 Z" fill="url(#hbs)"/><path d="M39 0 L0 58 L24 58 L13 97 L56 33 L30 33 Z" fill="url(#hbf)"/><path d="M39 0 L30 33 L35 33 L42 3 Z" fill="#ffe680" opacity=".5"/></svg><span>канал автора <b><i class="e">Energy</i><i class="u">UA</i></b></span><span class="yt">▶</span></a></div>
     </div>
   </div>
@@ -2172,7 +2176,7 @@ function renderThemes(){
    стає «🆕 Є версія 3.0.1». Посеред тренування не питає - спитає, коли
    повернешся на головну. Сама гра не оновлюється: sw.js віддає збережену
    версію, доки не натиснеш «Оновити». sw.js між версіями НЕ змінювати. */
-const APP_VERSION="3.7.0";            // лише цифри: за ними порівнюються версії
+const APP_VERSION="3.7.1";            // лише цифри: за ними порівнюються версії
 const APP_DATE="20.11.2026";
 const APP_EDITION="kysya_edition";    // назва прошивки: 3.5.2_kysya_edition
 const verName=v=>{ v=String(v||""); return /_/.test(v) ? v : v+"_"+APP_EDITION; };
